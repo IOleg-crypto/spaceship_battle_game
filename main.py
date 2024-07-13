@@ -1,5 +1,5 @@
 import pygame as pg
-import sys
+import os
 import random as rm
 import render as r
 
@@ -25,7 +25,8 @@ def main():
 
     """Render spaceship"""
     render = r.RenderSpaceShip(spaceship_pos, screen)
-
+    """Loading sprites"""
+    image_ship = pg.image.load(os.path.join("assets", "spaceship2d.png"))
     """Game loop"""
     while True:
         # poll for events
@@ -51,10 +52,12 @@ def main():
         screen.fill("black")
 
         # RENDER YOUR GAME HERE
-        render.draw_ship(screen)
+        render.draw_ship(image_ship)
         # detect screen bounds
         render.detect_screen_bounds()
 
+        # update the screen
+        pg.display.update()
 
         # flip() the display to put your work on screen
         pg.display.flip()

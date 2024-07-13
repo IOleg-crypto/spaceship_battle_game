@@ -6,8 +6,10 @@ class RenderSpaceShip:
         self.pos = pos
         self.screen = screen
 
-    def draw_ship(self, screen):
-        pg.draw.circle(screen, "red", self.pos, 20)
+    def draw_ship(self, image):
+        scaled_image = pg.transform.scale(image, (image.get_width() // 2, image.get_height() // 2 ))
+        rect = scaled_image.get_rect()
+        self.screen.blit(scaled_image, self.pos, rect)
 
     def move(self, x, y):
         self.pos[0] += x
