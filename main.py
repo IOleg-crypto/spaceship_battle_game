@@ -46,6 +46,15 @@ def main():
             render.move(0, -5)
         if keys[pg.K_DOWN]:
             render.move(0, 5)
+        if keys[pg.K_w]:
+            render.move(0, -5)
+        if keys[pg.K_s]:
+            render.move(0, 5)
+        if keys[pg.K_a]:
+            render.move(-5, 0)
+        if keys[pg.K_d]:
+            render.move(5, 0)
+
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill("black")

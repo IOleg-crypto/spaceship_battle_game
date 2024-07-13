@@ -28,7 +28,7 @@ class RenderSpaceShip:
 
 
 class RenderSpaceShipShells:
-    def __init__(self):n
+    def __init__(self):
         pass
 
     def draw_bullets(self):
