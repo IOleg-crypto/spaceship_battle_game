@@ -1,7 +1,6 @@
 import pygame as pg
 import os
-import random as rm
-import render as r
+import render_assets as ra
 
 
 def main():
@@ -9,8 +8,7 @@ def main():
     main functionality
     :return:
     """
-    """Spaceship coordinates"""
-    spaceship_pos = [rm.randint(0, 800), rm.randint(0, 600)]
+    running_program = True
     """Pygame initialization"""
     pg.init()
     width, height = 800, 600
@@ -18,43 +16,42 @@ def main():
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
 
+    """Spaceship coordinates"""
+    spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2, screen]
     if pg.get_init():
         print("Launched pygame")
     else:
         print("Not launched pygame")
 
-    """Render spaceship"""
-    render = r.RenderSpaceShip(spaceship_pos, screen)
+        """Game loop"""
     """Loading sprites"""
     image_ship = pg.image.load(os.path.join("assets", "spaceship2d.png"))
-    """Game loop"""
-    while True:
+    """Render spaceship and his shells"""
+    render = ra.RenderSpaceShip(spaceship_pos, screen)
+    while running_program:
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
 
         # event handling(set hotkeys and controls)
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                pg.quit()
+                running_program = False
 
-        """Move spaceship"""
-        if pg.key.get_pressed()[pg.K_LEFT]:
+        keys = pg.key.get_pressed()
+        if keys[pg.K_LEFT]:
             render.move(-5, 0)
-        if pg.key.get_pressed()[pg.K_RIGHT]:
+        if keys[pg.K_RIGHT]:
             render.move(5, 0)
-        if pg.key.get_pressed()[pg.K_UP]:
+        if keys[pg.K_UP]:
             render.move(0, -5)
-        if pg.key.get_pressed()[pg.K_DOWN]:
+        if keys[pg.K_DOWN]:
             render.move(0, 5)
-
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill("black")
 
         # RENDER YOUR GAME HERE
         render.draw_ship(image_ship)
-        # detect screen bounds
-        render.detect_screen_bounds()
 
         # update the screen
         pg.display.update()
