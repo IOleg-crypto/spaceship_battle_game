@@ -13,9 +13,13 @@ def main():
     while True:
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
+
+        # event handling(set hotkeys and controls)
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 pg.quit()
+            if event.type == pg.KEYUP:
+                sys.exit()
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill("black")
