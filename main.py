@@ -3,8 +3,6 @@ import os
 import functionality as ra
 
 white = (255, 255, 255)
-green = (0, 255, 0)
-blue = (0, 0, 128)
 
 def main():
     """
@@ -19,21 +17,16 @@ def main():
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
 
-    """additional variables"""
-    font = pg.font.Font(None, 32)
-    score = font.render("Score: " + str(0), True, (255, 255, 255))
-
     """Spaceship coordinates"""
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
-    textRect = score.get_rect()
 
-    # set the center of the rectangular object.
-    textRect.center = (spaceship_pos[0] // 2, spaceship_pos[1] // 2)
-
-    if pg.get_init():
-        print("Launched pygame")
-    else:
+    if not pg.get_init():
         print("Not launched pygame")
+    else:
+        print("Launched pygame")
+
+    """count"""
+    count = 0
 
     """Loading sprites"""
     spaceship = pg.image.load(os.path.join("assets", "spaceship2d.png"))
@@ -42,6 +35,9 @@ def main():
     """Render spaceship and its shells"""
     render = ra.RenderSpaceShip(spaceship_pos, screen)
     render_ammo = ra.RenderSpaceShipShells(spaceship_pos, screen, shell_spaceship)
+
+    """bool checker"""
+    show_debug_text = True
 
     """Game loop"""
     while running_program:
@@ -67,18 +63,32 @@ def main():
             render.move(-5, 0)
         if keys[pg.K_d]:
             render.move(5, 0)
-        if keys[pg.K_SPACE]:
+        if keys[pg.K_SPACE] or keys[pg.K_KP_ENTER]:
             render_ammo.shoot_shell()
+            count += 1
             print("Space key pressed")
+        if keys[pg.K_x]:
+            show_debug_text = not show_debug_text
+            print("Debug text")
 
         # Fill the screen with a color to wipe away anything from last frame
         screen.fill("black")
+
+        """display text"""
+        font = pg.font.SysFont(None, 36)
+        text_surface = font.render("Shooted bullets : " + str(count), True, white)
+
+        # Получение прямоугольника текста
+        text_rect = text_surface.get_rect()
+
+        # Отображение текста, если show_debug_text установлено в True
+        if show_debug_text:
+            screen.blit(text_surface, text_rect)w
 
         # Render the spaceship
         render.draw_ship(spaceship)
 
         # Render the bullets
-
         render_ammo.update_shells()
         render_ammo.draw_bullets()
 
@@ -88,7 +98,6 @@ def main():
         # Flip the display to put your work on screen
         pg.display.flip()
         clock.tick(60)
-
 
 if __name__ == "__main__":
     main()

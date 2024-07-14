@@ -43,7 +43,7 @@ Spaceship Battle Game - это аркадная игра, в которой иг
 ## Структура проекта
 
 ```plaintext
-spaceship_battle_game/
+spaceship_game/
 ├── ammoability.py        # Модуль для управления снарядами
 ├── main.py               # Основной скрипт игры
 ├── README.md             # Этот файл
