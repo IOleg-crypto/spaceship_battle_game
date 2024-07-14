@@ -2,6 +2,9 @@ import pygame as pg
 import os
 import functionality as ra
 
+white = (255, 255, 255)
+green = (0, 255, 0)
+blue = (0, 0, 128)
 
 def main():
     """
@@ -16,8 +19,17 @@ def main():
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
 
+    """additional variables"""
+    font = pg.font.Font(None, 32)
+    score = font.render("Score: " + str(0), True, (255, 255, 255))
+
     """Spaceship coordinates"""
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
+    textRect = score.get_rect()
+
+    # set the center of the rectangular object.
+    textRect.center = (spaceship_pos[0] // 2, spaceship_pos[1] // 2)
+
     if pg.get_init():
         print("Launched pygame")
     else:
