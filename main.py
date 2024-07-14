@@ -1,6 +1,6 @@
 import pygame as pg
 import os
-import render_assets as ra
+import functionality as ra
 
 
 def main():
@@ -9,9 +9,8 @@ def main():
     :return:
     """
     running_program = True
-
-    """Pygame initialization"""
     pg.init()
+    """Pygame initialization"""
     width, height = 800, 600
     screen = pg.display.set_mode((width, height))
     clock = pg.time.Clock()
@@ -27,11 +26,10 @@ def main():
     """Loading sprites"""
     spaceship = pg.image.load(os.path.join("assets", "spaceship2d.png"))
     shell_spaceship = pg.image.load(os.path.join("assets", "shell.png"))
-    rocket_spaceship = pg.image.load(os.path.join("assets", "rocket.png"))
 
     """Render spaceship and its shells"""
     render = ra.RenderSpaceShip(spaceship_pos, screen)
-    render_ammo = ra.RenderSpaceShipShells(spaceship_pos, screen, shell_spaceship, rocket_spaceship)
+    render_ammo = ra.RenderSpaceShipShells(spaceship_pos, screen, shell_spaceship)
 
     """Game loop"""
     while running_program:
@@ -69,8 +67,8 @@ def main():
 
         # Render the bullets
 
-        render_ammo.update_shell()
-        render_ammo.draw_shell()
+        render_ammo.update_shells()
+        render_ammo.draw_bullets()
 
         # Update the screen
         pg.display.update()
