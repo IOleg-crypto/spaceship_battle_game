@@ -9,6 +9,7 @@ def main():
     :return:
     """
     running_program = True
+
     """Pygame initialization"""
     pg.init()
     width, height = 800, 600
@@ -17,22 +18,24 @@ def main():
     pg.display.set_caption("Spaceship Battle!")
 
     """Spaceship coordinates"""
-    spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2, screen]
+    spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
     if pg.get_init():
         print("Launched pygame")
     else:
         print("Not launched pygame")
 
-        """Game loop"""
     """Loading sprites"""
-    image_ship = pg.image.load(os.path.join("assets", "spaceship2d.png"))
-    """Render spaceship and his shells"""
-    render = ra.RenderSpaceShip(spaceship_pos, screen)
-    while running_program:
-        # poll for events
-        # pygame.QUIT event means the user clicked X to close your window
+    spaceship = pg.image.load(os.path.join("assets", "spaceship2d.png"))
+    shell_spaceship = pg.image.load(os.path.join("assets", "shell.png"))
+    rocket_spaceship = pg.image.load(os.path.join("assets", "rocket.png"))
 
-        # event handling(set hotkeys and controls)
+    """Render spaceship and its shells"""
+    render = ra.RenderSpaceShip(spaceship_pos, screen)
+    render_ammo = ra.RenderSpaceShipShells(spaceship_pos, screen, shell_spaceship, rocket_spaceship)
+
+    """Game loop"""
+    while running_program:
+        # Event handling (set hotkeys and controls)
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running_program = False
@@ -54,18 +57,21 @@ def main():
             render.move(-5, 0)
         if keys[pg.K_d]:
             render.move(5, 0)
+        if keys[pg.K_1]:
+            render_ammo.draw_rocket()
+        if keys[pg.K_SPACE]:
+            render_ammo.draw_shell()
 
-
-        # fill the screen with a color to wipe away anything from last frame
+        # Fill the screen with a color to wipe away anything from last frame
         screen.fill("black")
 
-        # RENDER YOUR GAME HERE
-        render.draw_ship(image_ship)
+        # Render the spaceship
+        render.draw_ship(spaceship)
 
-        # update the screen
+        # Update the screen
         pg.display.update()
 
-        # flip() the display to put your work on screen
+        # Flip the display to put your work on screen
         pg.display.flip()
         clock.tick(60)
 
