@@ -57,16 +57,20 @@ def main():
             render.move(-5, 0)
         if keys[pg.K_d]:
             render.move(5, 0)
-        if keys[pg.K_1]:
-            render_ammo.draw_rocket()
         if keys[pg.K_SPACE]:
-            render_ammo.draw_shell()
+            render_ammo.shoot_shell()
+            print("Space key pressed")
 
         # Fill the screen with a color to wipe away anything from last frame
         screen.fill("black")
 
         # Render the spaceship
         render.draw_ship(spaceship)
+
+        # Render the bullets
+
+        render_ammo.update_shell()
+        render_ammo.draw_shell()
 
         # Update the screen
         pg.display.update()

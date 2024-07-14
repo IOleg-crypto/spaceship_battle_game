@@ -1,4 +1,5 @@
 import pygame as pg
+from ammoability import AmmoAbility
 
 
 class RenderSpaceShip:
@@ -33,6 +34,7 @@ class RenderSpaceShipShells(RenderSpaceShip):
         super().__init__(pos, screen)
         self.sprite_shell = sprite_shell
         self.sprite_rocket = sprite_rocket
+        self.shells = []
 
     def draw_shell(self):
         scaled_image = pg.transform.scale(self.sprite_shell,
@@ -40,11 +42,21 @@ class RenderSpaceShipShells(RenderSpaceShip):
         rect = scaled_image.get_rect(center=(self.pos[0], self.pos[1]))  # Use self.pos to position the rect
         self.screen.blit(scaled_image, rect)  # Use the rect without additional position fix code
 
-    def draw_rocket(self):
-        scaled_image = pg.transform.scale(self.sprite_rocket,
-                                          (self.sprite_rocket.get_width() // 4, self.sprite_rocket.get_height() // 4))
-        rect = scaled_image.get_rect(center=(self.pos[0], self.pos[1]))  # Use self.pos to position the rect
-        self.screen.blit(scaled_image, rect)  # Use the rect without additional position
+    def shoot_shell(self):
+        shell_pos = self.pos[:]
+        shell = AmmoAbility(shell_pos, self.sprite_shell, speed=10)
+        self.shells.append(shell)
+        print("shot shell")
 
+    def update_shell(self):
+        for shell in self.shells:
+            shell.update()
+            if shell.pos[1] < 0:
+                self.shells.remove(shell)
+                print(f"Number of bullets: {len(self.shells)}")
+
+    def draw_bullets(self):
+        for shell in self.shells:
+            shell.draw(self.screen)
 
 # TODO: add the following functions
