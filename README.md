@@ -18,12 +18,15 @@ Spaceship Battle Game - это аркадная игра, в которой иг
 2. Перейдите в папку проекта:
     ```sh
     cd spaceship_battle_game
-    ```
+    ````
 3. Установите необходимые зависимости:
     ```sh
     pip install pygame
     ```
-
+4. Альтернатива
+   ```sh
+   pip install -r requirements.txt
+   ```
 ## Запуск
 
 1. Запустите основной скрипт игры:
