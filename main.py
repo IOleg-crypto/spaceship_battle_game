@@ -83,7 +83,7 @@ def main():
 
         # Отображение текста, если show_debug_text установлено в True
         if show_debug_text:
-            screen.blit(text_surface, text_rect)w
+            screen.blit(text_surface, text_rect)
 
         # Render the spaceship
         render.draw_ship(spaceship)

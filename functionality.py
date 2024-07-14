@@ -65,3 +65,13 @@ class RenderSpaceShipShells(RenderSpaceShip):
     def draw_bullets(self):
         for shell in self.shells:
             shell.draw(self.screen)
+
+
+# TODO : need to make enemies and main menu
+
+class Enemy:
+    pass
+
+
+class MainMenu:
+    pass
