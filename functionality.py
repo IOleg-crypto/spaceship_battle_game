@@ -83,21 +83,3 @@ class Enemy:
         pass
 
 
-class MainMenu:
-    def __init__(self, width, height, title, screen, start_game_callback):
-        self.title = title
-        self.width = width
-        self.height = height
-        self.screen = screen
-        self.start_game_callback = start_game_callback
-
-    def draw_menu(self):
-        main_menu = pm.Menu(title=self.title,
-                            width=self.width,
-                            height=self.height,
-                            theme=pm.themes.THEME_GREEN)
-        main_menu.add.button('Play', self.start_game_callback)
-        main_menu.add.button(title="Exit", action=pm.events.EXIT,
-                             font_color=WHITE, background_color=RED)
-
-        main_menu.mainloop(self.screen)

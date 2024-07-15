@@ -1,9 +1,28 @@
 import pygame as pg
+import pygame_menu as pm
 import os
 import functionality as ra
 
 white = (255, 255, 255)
 
+
+class MainMenu:
+    def __init__(self, width, height, title, screen):
+        self.title = title
+        self.width = width
+        self.height = height
+        self.screen = screen
+
+    def draw_menu(self):
+        main_menu = pm.Menu(title=self.title,
+                            width=self.width,
+                            height=self.height,
+                            theme=pm.themes.THEME_GREEN)
+        main_menu.add.button('Play', main())
+        main_menu.add.button(title="Exit", action=pm.events.EXIT,
+                             font_color=white, background_color=white)
+
+        main_menu.mainloop(self.screen)
 
 def main():
     """
@@ -29,7 +48,7 @@ def main():
         print("Launched pygame")
 
     """Main menu"""
-    main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen , main)
+    main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen)
     main_menu.draw_menu()
     """count"""
     count = 0
