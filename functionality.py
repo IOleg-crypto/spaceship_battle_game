@@ -70,8 +70,10 @@ class RenderSpaceShipShells(RenderSpaceShip):
 # TODO : need to make enemies and main menu
 
 class Enemy:
-    pass
+    def __init__(self):
+        pass
 
 
 class MainMenu:
-    pass
+    def __init__(self):
+        pass

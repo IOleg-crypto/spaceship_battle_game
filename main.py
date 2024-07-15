@@ -4,6 +4,7 @@ import functionality as ra
 
 white = (255, 255, 255)
 
+
 def main():
     """
     main functionality
@@ -27,6 +28,7 @@ def main():
 
     """count"""
     count = 0
+    score = 00000
 
     """Loading sprites"""
     spaceship = pg.image.load(os.path.join("assets", "spaceship2d.png"))
@@ -75,15 +77,25 @@ def main():
         screen.fill("black")
 
         """display text"""
-        font = pg.font.SysFont(None, 36)
+        font = pg.font.Font("font/Pacifico.ttf", 36)
         text_surface = font.render("Shooted bullets : " + str(count), True, white)
+        text_score = font.render("Score : " + str(score), True, white)
 
         # Получение прямоугольника текста
         text_rect = text_surface.get_rect()
+        text_score_rect = text_score.get_rect()
+
+
 
         # Отображение текста, если show_debug_text установлено в True
         if show_debug_text:
             screen.blit(text_surface, text_rect)
+            # Set the position of the text
+            text_rect.topleft = (10, 10)  # Example position, adjust as needed
+            text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)  # Adjust the vertical gap as needed
+            screen.blit(text_score, text_score_rect)
+        else:
+            screen.blit(text_score, text_score_rect)
 
         # Render the spaceship
         render.draw_ship(spaceship)
@@ -98,6 +110,7 @@ def main():
         # Flip the display to put your work on screen
         pg.display.flip()
         clock.tick(60)
+
 
 if __name__ == "__main__":
     main()
