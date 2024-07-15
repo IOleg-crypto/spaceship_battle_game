@@ -10,13 +10,15 @@ def main():
     main functionality
     :return:
     """
-    running_program = True
+
     pg.init()
     """Pygame initialization"""
     width, height = 800, 600
     screen = pg.display.set_mode((width, height))
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
+
+    running_program = True
 
     """Spaceship coordinates"""
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
@@ -26,6 +28,9 @@ def main():
     else:
         print("Launched pygame")
 
+    """Main menu"""
+    main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen , main)
+    main_menu.draw_menu()
     """count"""
     count = 0
     score = 00000
@@ -84,8 +89,6 @@ def main():
         # Получение прямоугольника текста
         text_rect = text_surface.get_rect()
         text_score_rect = text_score.get_rect()
-
-
 
         # Отображение текста, если show_debug_text установлено в True
         if show_debug_text:
