@@ -1,14 +1,9 @@
 import pygame as pg
 import pygame_menu as pm
-from main import *
+import os
 
 RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-CYAN = (0, 100, 100)
-BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-
 
 class AmmoAbility:
     def __init__(self, pos, sprite, speed):
@@ -23,7 +18,6 @@ class AmmoAbility:
         scaled_image = pg.transform.scale(self.sprite, (self.sprite.get_width() // 4, self.sprite.get_height() // 4))
         rect = scaled_image.get_rect(center=(self.pos[0], self.pos[1]))
         screen.blit(scaled_image, rect)
-
 
 class RenderSpaceShip:
     def __init__(self, pos, screen):
@@ -51,7 +45,6 @@ class RenderSpaceShip:
         if self.pos[1] < 0:
             self.pos[1] = self.screen.get_height()
 
-
 class RenderSpaceShipShells(RenderSpaceShip):
     def __init__(self, pos, screen, sprite_shell):
         super().__init__(pos, screen)
@@ -75,11 +68,57 @@ class RenderSpaceShipShells(RenderSpaceShip):
         for shell in self.shells:
             shell.draw(self.screen)
 
-
-# TODO : need to make enemies and main menu
-
 class Enemy:
     def __init__(self):
         pass
 
+class MovingBackground:
+    def __init__(self, screen, image_path, speed):
+        self.screen = screen
+        self.bg_image = pg.image.load(image_path)
+        self.bg_image = pg.transform.scale(self.bg_image, (screen.get_width(), screen.get_height()))
+        self.bg_y = 0
+        self.speed = speed
 
+    def update(self):
+        self.bg_y += self.speed
+        if self.bg_y >= self.screen.get_height():
+            self.bg_y = 0
+
+    def draw(self):
+        self.screen.blit(self.bg_image, (0, self.bg_y))
+        self.screen.blit(self.bg_image, (0, self.bg_y - self.screen.get_height()))
+
+class MainMenu:
+    def __init__(self, width, height, title, screen, start_game_callback):
+        self.title = title
+        self.width = width
+        self.height = height
+        self.screen = screen
+        self.start_game_callback = start_game_callback
+        self.bg = MovingBackground(screen, os.path.join("assets", "background.jpg"), 2)
+
+    def draw_menu(self):
+        main_menu = pm.Menu(title=self.title,
+                            width=self.width,
+                            height=self.height)
+        main_menu.add.button('Play', self.start_game)
+        main_menu.add.button('Exit', pm.events.EXIT, font_color=WHITE, background_color=RED)
+
+        while True:
+            events = pg.event.get()
+            for event in events:
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    exit()
+
+            self.bg.update()
+            self.bg.draw()
+            main_menu.update(events)
+            main_menu.draw(self.screen)
+            pg.display.flip()
+
+    def start_game(self):
+        self.screen.fill((0, 0, 0))
+        pg.display.update()
+        self.start_game_callback()

@@ -4,31 +4,15 @@ import os
 import functionality as ra
 
 white = (255, 255, 255)
-
-
-class MainMenu:
-    def __init__(self, width, height, title, screen):
-        self.title = title
-        self.width = width
-        self.height = height
-        self.screen = screen
-
-    def draw_menu(self):
-        main_menu = pm.Menu(title=self.title,
-                            width=self.width,
-                            height=self.height,
-                            theme=pm.themes.THEME_GREEN)
-        main_menu.add.button('Play', main())
-        main_menu.add.button(title="Exit", action=pm.events.EXIT,
-                             font_color=white, background_color=white)
-
-        main_menu.mainloop(self.screen)
+back_menu_game = False
 
 def main():
     """
     main functionality
     :return:
     """
+
+    global back_menu_game
 
     pg.init()
     """Pygame initialization"""
@@ -47,9 +31,6 @@ def main():
     else:
         print("Launched pygame")
 
-    """Main menu"""
-    main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen)
-    main_menu.draw_menu()
     """count"""
     count = 0
     score = 00000
@@ -65,12 +46,17 @@ def main():
     """bool checker"""
     show_debug_text = True
 
+
     """Game loop"""
     while running_program:
         # Event handling (set hotkeys and controls)
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running_program = False
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_n:
+                    back_menu_game = True
+                    running_program = False
 
         keys = pg.key.get_pressed()
         if keys[pg.K_LEFT]:
@@ -135,4 +121,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    pg.init()
+    width, height = 800, 600
+    screen = pg.display.set_mode((width, height))
+    pg.display.set_caption("Spaceship Battle!")
+
+    main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen, main)
+    while True:
+        main_menu.draw_menu()
+        if back_menu_game:
+            back_menu_game = False
+            main()
