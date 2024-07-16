@@ -1,12 +1,14 @@
 import pygame as pg
 import pygame_menu as pm
+import random as rm
 import os
+import math
 
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 
 
-class AmmoAbility:
+class Ammo:
     def __init__(self, pos, sprite, speed):
         self.pos = pos
         self.sprite = sprite
@@ -29,7 +31,8 @@ class RenderSpaceShip:
 
     def draw_ship(self, sprite_spaceship):
         scaled_image = pg.transform.scale(sprite_spaceship,
-                                          ((sprite_spaceship.get_width() // 4), int(sprite_spaceship.get_height() // 4)))
+                                          (
+                                          (sprite_spaceship.get_width() // 4), int(sprite_spaceship.get_height() // 4)))
         rect = scaled_image.get_rect(center=(self.pos[0], self.pos[1]))
         self.screen.blit(scaled_image, rect)
 
@@ -57,7 +60,7 @@ class RenderSpaceShipShells(RenderSpaceShip):
 
     def shoot_shell(self):
         shell_pos = self.pos[:]
-        shell = AmmoAbility(shell_pos, self.sprite_shell, speed=10)
+        shell = Ammo(shell_pos, self.sprite_shell, speed=10)
         self.shells.append(shell)
 
     def update_shells(self):
@@ -72,8 +75,41 @@ class RenderSpaceShipShells(RenderSpaceShip):
 
 
 class Enemy:
-    def __init__(self):
-        pass
+    def __init__(self, screen, color, radius, initial_pos=None):
+        self.screen = screen
+        self.color = color
+        self.radius = radius
+        self.speed = [rm.choice([-1, 1]), rm.choice([-1, 1])]  # Default speed (test)
+        # Initialize position; if not provided, start from a random position
+        if initial_pos is None:
+            self.pos = [rm.randint(0, screen.get_width()), rm.randint(0, screen.get_height())]
+        else:
+            self.pos = list(initial_pos)  # Ensure it's a list
+
+    def draw(self):
+        pg.draw.circle(self.screen, self.color, (int(self.pos[0]), int(self.pos[1])), self.radius)
+
+    def move(self):
+        # Update position based on speed
+        self.pos[0] += self.speed[0]
+        self.pos[1] += self.speed[1]
+        self.detect_screen_bounds()
+
+    def detect_screen_bounds(self):
+        if self.pos[0] > self.screen.get_width():
+            self.pos[0] = 0
+        elif self.pos[0] < 0:
+            self.pos[0] = self.screen.get_width()
+        if self.pos[1] > self.screen.get_height():
+            self.pos[1] = 0
+        elif self.pos[1] < 0:
+            self.pos[1] = self.screen.get_height()
+
+
+
+    def update(self):
+        self.move()
+        self.draw()
 
 
 class MovingBackground:
@@ -101,7 +137,6 @@ class MainMenu:
         self.height = height
         self.screen = screen
         self.start_game_callback = start_game_callback
-        self.scaling_factor = 0
         # self.bg = MovingBackground(screen, os.path.join("assets", "background.jpg"), 2)
         # print(f"Background image loaded: {os.path.exists(os.path.join('assets', 'background.jpg'))}")
         """unused options"""

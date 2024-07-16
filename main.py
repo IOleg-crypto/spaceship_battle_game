@@ -1,11 +1,17 @@
 import pygame as pg
 import os
 import functionality as ra
+import math
 
 width, height = 800, 600
 screen = pg.display.set_mode((width, height))
 white = (255, 255, 255)
 back_menu_game = False
+
+
+def check_collision(shell, enemy):
+    distance = math.sqrt((shell.pos[0] - enemy.pos[0]) ** 2 + (shell.pos[1] - enemy.pos[1]) ** 2)
+    return distance < (shell.sprite.get_width() // 8 + enemy.radius)
 
 
 def main():
@@ -16,8 +22,6 @@ def main():
 
     global back_menu_game
 
-    pg.init()
-    """Pygame initialization"""
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
 
@@ -42,6 +46,10 @@ def main():
     """Render spaceship and its shells"""
     render = ra.RenderSpaceShip(spaceship_pos, screen)
     render_ammo = ra.RenderSpaceShipShells(spaceship_pos, screen, shell_spaceship)
+
+    "make enemy"
+    enemies = [ra.Enemy(screen, white, 15) for _ in range(100)]  # Create 10 enemies (999999 not normal)
+    # enemy.draw()
 
     """bool checker"""
     show_debug_text = True
@@ -114,6 +122,15 @@ def main():
 
         # Update the screen
         pg.display.update()
+        # Check for collisions
+        for shell in render_ammo.shells:
+            for enemy in enemies:
+                enemy.update()
+                if check_collision(shell, enemy):
+                    enemies.remove(enemy)
+                    score += 1
+                    render_ammo.shells.remove(shell)
+                    break
 
         # Flip the display to put your work on screen
         pg.display.flip()
@@ -123,8 +140,6 @@ def main():
 if __name__ == "__main__":
     pg.init()
     pg.mixer.init()
-    width, height = 800, 600  # default resolution
-    screen = pg.display.set_mode((width, height))
     pg.display.set_caption("Spaceship Battle!")
 
     main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen, main)
