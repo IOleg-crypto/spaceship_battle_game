@@ -2,8 +2,11 @@ import pygame as pg
 import os
 import functionality as ra
 
+width, height = 800, 600
+screen = pg.display.set_mode((width, height))
 white = (255, 255, 255)
 back_menu_game = False
+
 
 def main():
     """
@@ -15,8 +18,6 @@ def main():
 
     pg.init()
     """Pygame initialization"""
-    width, height = 800, 600
-    screen = pg.display.set_mode((width, height))
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
 
@@ -32,7 +33,7 @@ def main():
 
     """count"""
     count = 0
-    score = 00000
+    score = 0
 
     """Loading sprites"""
     spaceship = pg.image.load(os.path.join("assets", "spaceship2d.png"))
@@ -44,7 +45,6 @@ def main():
 
     """bool checker"""
     show_debug_text = True
-
 
     """Game loop"""
     while running_program:
@@ -74,8 +74,9 @@ def main():
             render.move(-5, 0)
         if keys[pg.K_d]:
             render.move(5, 0)
-        if keys[pg.K_SPACE] or keys[pg.K_KP_ENTER]:
+        if keys[pg.K_SPACE]:
             render_ammo.shoot_shell()
+            pg.mixer.Sound("sound/spaceship/laser-gun.mp3").play(0, 0, 0)
             count += 1
             print("Space key pressed")
         if keys[pg.K_x]:
@@ -121,7 +122,8 @@ def main():
 
 if __name__ == "__main__":
     pg.init()
-    width, height = 800, 600
+    pg.mixer.init()
+    width, height = 800, 600  # default resolution
     screen = pg.display.set_mode((width, height))
     pg.display.set_caption("Spaceship Battle!")
 
