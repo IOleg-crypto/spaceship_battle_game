@@ -9,7 +9,6 @@ RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 
 
-
 def create_enemies(screen, color, radius, num_enemies):
     enemies = pg.sprite.Group()
     for _ in range(num_enemies):
@@ -54,8 +53,6 @@ def game_loop(screen, clock, render, all_sprites, shells, enemies):
             if event.type == pg.QUIT:
                 running_program = False
 
-
-
         keys = pg.key.get_pressed()
         if keys[pg.K_LEFT]:
             render.update(-5, 0)
@@ -79,8 +76,6 @@ def game_loop(screen, clock, render, all_sprites, shells, enemies):
             shells.shoot_shell(render.rect.center)
             pg.mixer.Sound("sound/spaceship/laser-gun.mp3").play(0, 0, 0)
             count += 1
-
-
 
         all_sprites.update()
         shells.update()
@@ -114,7 +109,7 @@ def game_loop(screen, clock, render, all_sprites, shells, enemies):
         enemies.draw(screen)
 
         if pg.sprite.groupcollide(shells, enemies, True, True):
-           score += 1
+            score += 1
 
         pg.display.flip()
         clock.tick(60)

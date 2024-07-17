@@ -101,14 +101,28 @@ class MainMenu:
         self.start_game_callback = start_game_callback
         self.bg = MovingBackground(screen, os.path.join("assets", "background.jpg"), 2)
 
+        self.custom_theme = pm.themes.THEME_DARK.copy()
+        self.custom_theme.background_color = pm.baseimage.BaseImage(
+            image_path=os.path.join("assets", "background.jpg"),
+            drawing_mode=pm.baseimage.IMAGE_MODE_FILL
+        )
+
     def draw_menu(self):
         main_menu = pm.Menu(title=self.title,
                             width=self.width,
                             height=self.height,
-                            theme=pm.themes.THEME_DARK)
+                            theme=self.custom_theme)
+
+        settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
+
+        # settings_menu.add.selector('Resolution :', self.resolution_options, onchange=self.set_resolution)
+        settings_menu.add.button('Back', pm.events.BACK)
+
         main_menu.add.button('Play', self.start_game)
-        main_menu.add.button(title="Exit", action=pm.events.EXIT,
-                             font_color=WHITE, background_color=RED)
+        main_menu.add.button('Settings', settings_menu)
+        main_menu.add.button('Exit', pm.events.EXIT, font_color=WHITE, background_color=RED)
+
+        main_menu.mainloop(self.screen)
 
         while True:
             events = pg.event.get()
