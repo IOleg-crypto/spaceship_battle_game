@@ -1,3 +1,4 @@
+
 import pygame as pg
 import os
 import pygame_menu as pm
@@ -46,6 +47,7 @@ def game_loop(screen, clock, render, all_sprites, shells, enemies):
     count = 0
     score = 0
 
+    loading_background = pg.image.load(os.path.join("assets", "space_background.png"))
     show_debug_text = True
 
     while running_program:
@@ -81,7 +83,7 @@ def game_loop(screen, clock, render, all_sprites, shells, enemies):
         shells.update()
         enemies.update()
 
-        screen.fill(BLACK)
+        screen.blit(loading_background, (0, 0))
 
         """display text"""
         font = pg.font.Font("font/Pacifico.ttf", 36)
