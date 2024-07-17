@@ -1,108 +1,101 @@
 import pygame as pg
 import os
+import pygame_menu as pm
 import functionality as ra
-import math
+import random
 
-width, height = 800, 600
-screen = pg.display.set_mode((width, height))
-white = (255, 255, 255)
-back_menu_game = False
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+BLACK = (0, 0, 0)
 
 
-def check_collision(shell, enemy):
-    distance = math.sqrt((shell.pos[0] - enemy.pos[0]) ** 2 + (shell.pos[1] - enemy.pos[1]) ** 2)
-    return distance < (shell.sprite.get_width() // 8 + enemy.radius)
+
+def create_enemies(screen, color, radius, num_enemies):
+    enemies = pg.sprite.Group()
+    for _ in range(num_enemies):
+        enemy = ra.Enemy(screen, color, radius)
+        enemies.add(enemy)
+    return enemies
 
 
 def main():
-    """
-    main functionality
-    :return:
-    """
-
-    global back_menu_game
-
+    pg.init()
+    pg.mixer.init()
+    width, height = 800, 600
+    screen = pg.display.set_mode((width, height))
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
 
-    running_program = True
+    num_enemies = 10
+    enemies = create_enemies(screen, RED, 15, num_enemies)
 
-    """Spaceship coordinates"""
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
-
-    if not pg.get_init():
-        print("Not launched pygame")
-    else:
-        print("Launched pygame")
-
-    """count"""
-    count = 0
-    score = 0
-
-    """Loading sprites"""
     spaceship = pg.image.load(os.path.join("assets", "spaceship2d.png"))
     shell_spaceship = pg.image.load(os.path.join("assets", "shell.png"))
 
-    """Render spaceship and its shells"""
-    render = ra.RenderSpaceShip(spaceship_pos, screen)
-    render_ammo = ra.RenderSpaceShipShells(spaceship_pos, screen, shell_spaceship)
+    render = ra.RenderSpaceShip(spaceship_pos, spaceship)
+    all_sprites = pg.sprite.Group(render)
+    shells = ra.RenderSpaceShipShells(shell_spaceship)
 
-    "make enemy"
-    enemies = [ra.Enemy(screen, white, 15) for _ in range(100)]  # Create 10 enemies (999999 not normal)
-    # enemy.draw()
+    main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen,
+                            lambda: game_loop(screen, clock, render, all_sprites, shells, enemies))
+    main_menu.draw_menu()
 
-    """bool checker"""
+
+def game_loop(screen, clock, render, all_sprites, shells, enemies):
+    running_program = True
+    count = 0
+    score = 0
+
     show_debug_text = True
 
-    """Game loop"""
     while running_program:
-        # Event handling (set hotkeys and controls)
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running_program = False
-            elif event.type == pg.KEYDOWN:
-                if event.key == pg.K_n:
-                    back_menu_game = True
-                    running_program = False
+
+
 
         keys = pg.key.get_pressed()
         if keys[pg.K_LEFT]:
-            render.move(-5, 0)
+            render.update(-5, 0)
         if keys[pg.K_RIGHT]:
-            render.move(5, 0)
+            render.update(5, 0)
         if keys[pg.K_UP]:
-            render.move(0, -5)
+            render.update(0, -5)
         if keys[pg.K_DOWN]:
-            render.move(0, 5)
+            render.update(0, 5)
         if keys[pg.K_w]:
-            render.move(0, -5)
+            render.update(0, -5)
         if keys[pg.K_s]:
-            render.move(0, 5)
+            render.update(0, 5)
         if keys[pg.K_a]:
-            render.move(-5, 0)
+            render.update(-5, 0)
         if keys[pg.K_d]:
-            render.move(5, 0)
-        if keys[pg.K_SPACE]:
-            render_ammo.shoot_shell()
-            pg.mixer.Sound("sound/spaceship/laser-gun.mp3").play(0, 0, 0)
-            count += 1
-            print("Space key pressed")
+            render.update(5, 0)
         if keys[pg.K_x]:
             show_debug_text = not show_debug_text
-            print("Debug text")
+        if keys[pg.K_SPACE]:
+            shells.shoot_shell(render.rect.center)
+            pg.mixer.Sound("sound/spaceship/laser-gun.mp3").play(0, 0, 0)
+            count += 1
 
-        # Fill the screen with a color to wipe away anything from last frame
-        screen.fill("black")
+
+
+        all_sprites.update()
+        shells.update()
+        enemies.update()
+
+        screen.fill(BLACK)
 
         """display text"""
         font = pg.font.Font("font/Pacifico.ttf", 36)
-        text_surface = font.render("Shooted bullets : " + str(count), True, white)
-        text_score = font.render("Score : " + str(score), True, white)
+        text_surface = font.render("Shooted bullets : " + str(count), True, WHITE)
+        text_score = font.render("Score : " + str(score), True, WHITE)
 
         # Получение прямоугольника текста
         text_rect = text_surface.get_rect()
         text_score_rect = text_score.get_rect()
-
         # Отображение текста, если show_debug_text установлено в True
         if show_debug_text:
             screen.blit(text_surface, text_rect)
@@ -113,38 +106,21 @@ def main():
         else:
             screen.blit(text_score, text_score_rect)
 
-        # Render the spaceship
-        render.draw_ship(spaceship)
-
-        # Render the bullets
-        render_ammo.update_shells()
-        render_ammo.draw_bullets()
-
         # Update the screen
         pg.display.update()
-        # Check for collisions
-        for shell in render_ammo.shells:
-            for enemy in enemies:
-                enemy.update()
-                if check_collision(shell, enemy):
-                    enemies.remove(enemy)
-                    score += 1
-                    render_ammo.shells.remove(shell)
-                    break
 
-        # Flip the display to put your work on screen
+        all_sprites.draw(screen)
+        shells.draw(screen)
+        enemies.draw(screen)
+
+        if pg.sprite.groupcollide(shells, enemies, True, True):
+           score += 1
+
         pg.display.flip()
         clock.tick(60)
 
+    pg.quit()
+
 
 if __name__ == "__main__":
-    pg.init()
-    pg.mixer.init()
-    pg.display.set_caption("Spaceship Battle!")
-
-    main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen, main)
-    while True:
-        main_menu.draw_menu()
-        if back_menu_game:
-            back_menu_game = False
-            main()
+    main()
