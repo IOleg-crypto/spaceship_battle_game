@@ -7,6 +7,9 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 
+sound_muted = False
+
+
 class AmmoAbility(pg.sprite.Sprite):
     def __init__(self, pos, sprite, speed):
         super().__init__()
@@ -18,6 +21,7 @@ class AmmoAbility(pg.sprite.Sprite):
         self.rect.y -= self.speed
         if self.rect.bottom < 0:
             self.kill()
+
 
 class RenderSpaceShip(pg.sprite.Sprite):
     def __init__(self, pos, sprite):
@@ -40,6 +44,7 @@ class RenderSpaceShip(pg.sprite.Sprite):
         elif self.rect.top < 0:
             self.rect.bottom = pg.display.get_surface().get_height()
 
+
 class RenderSpaceShipShells(pg.sprite.Group):
     def __init__(self, sprite_shell):
         super().__init__()
@@ -49,6 +54,7 @@ class RenderSpaceShipShells(pg.sprite.Group):
         shell = AmmoAbility(pos, self.sprite_shell, speed=10)
         self.add(shell)
 
+
 class Enemy(pg.sprite.Sprite):
     def __init__(self, screen, color, radius):
         super().__init__()
@@ -57,7 +63,8 @@ class Enemy(pg.sprite.Sprite):
         self.radius = radius
         self.image = pg.Surface((radius * 2, radius * 2), pg.SRCALPHA)
         pg.draw.circle(self.image, color, (radius, radius), radius)
-        self.rect = self.image.get_rect(center=(random.randint(0, screen.get_width()), random.randint(0, screen.get_height())))
+        self.rect = self.image.get_rect(
+            center=(random.randint(0, screen.get_width()), random.randint(0, screen.get_height())))
         self.speed = [random.choice([-1, 1]), random.choice([-1, 1])]
 
     def update(self):
@@ -66,14 +73,15 @@ class Enemy(pg.sprite.Sprite):
         self.detect_screen_bounds()
 
     def detect_screen_bounds(self):
-        if self.rect.right > self.screen.get_width():
+        if self.rect.right > self.screen.get_width() - self.radius:
             self.rect.left = 0
         elif self.rect.left < 0:
-            self.rect.right = self.screen.get_width()
-        if self.rect.bottom > self.screen.get_height():
+            self.rect.right = self.screen.get_width() - self.radius
+        if self.rect.bottom > self.screen.get_height() - self.radius:
             self.rect.top = 0
         elif self.rect.top < 0:
-            self.rect.bottom = self.screen.get_height()
+            self.rect.bottom = self.screen.get_height() - self.radius
+
 
 class MovingBackground:
     def __init__(self, screen, image_path, speed):
@@ -91,6 +99,7 @@ class MovingBackground:
     def draw(self):
         self.screen.blit(self.bg_image, (0, self.bg_y))
         self.screen.blit(self.bg_image, (0, self.bg_y - self.screen.get_height()))
+
 
 class MainMenu:
     def __init__(self, width, height, title, screen, start_game_callback):
@@ -115,7 +124,7 @@ class MainMenu:
 
         settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
 
-        # settings_menu.add.selector('Resolution :', self.resolution_options, onchange=self.set_resolution)
+        settings_menu.add.selector('Mute menu music :', [('Off', False), ('On', True)], onchange=self.set_sound_muted)
         settings_menu.add.button('Back', pm.events.BACK)
 
         main_menu.add.button('Play', self.start_game)
@@ -141,3 +150,7 @@ class MainMenu:
         self.screen.fill((0, 0, 0))
         pg.display.update()
         self.start_game_callback()
+
+    def set_sound_muted(self, value, mute):
+        global sound_muted
+        sound_muted = mute

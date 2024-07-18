@@ -1,4 +1,3 @@
-
 import pygame as pg
 import os
 import pygame_menu as pm
@@ -18,6 +17,9 @@ def create_enemies(screen, color, radius, num_enemies):
     return enemies
 
 
+num_enemies = 10
+
+
 def main():
     pg.init()
     pg.mixer.init()
@@ -26,7 +28,6 @@ def main():
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
 
-    num_enemies = 10
     enemies = create_enemies(screen, RED, 15, num_enemies)
 
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
@@ -49,6 +50,7 @@ def game_loop(screen, clock, render, all_sprites, shells, enemies):
 
     loading_background = pg.image.load(os.path.join("assets", "space_background.png"))
     show_debug_text = True
+    game_won = False
 
     while running_program:
         for event in pg.event.get():
@@ -56,28 +58,31 @@ def game_loop(screen, clock, render, all_sprites, shells, enemies):
                 running_program = False
 
         keys = pg.key.get_pressed()
-        if keys[pg.K_LEFT]:
-            render.update(-5, 0)
-        if keys[pg.K_RIGHT]:
-            render.update(5, 0)
-        if keys[pg.K_UP]:
-            render.update(0, -5)
-        if keys[pg.K_DOWN]:
-            render.update(0, 5)
-        if keys[pg.K_w]:
-            render.update(0, -5)
-        if keys[pg.K_s]:
-            render.update(0, 5)
-        if keys[pg.K_a]:
-            render.update(-5, 0)
-        if keys[pg.K_d]:
-            render.update(5, 0)
-        if keys[pg.K_x]:
-            show_debug_text = not show_debug_text
-        if keys[pg.K_SPACE]:
-            shells.shoot_shell(render.rect.center)
-            pg.mixer.Sound("sound/spaceship/laser-gun.mp3").play(0, 0, 0)
-            count += 1
+        if not game_won:
+            if keys[pg.K_LEFT]:
+                render.update(-5, 0)
+            if keys[pg.K_RIGHT]:
+                render.update(5, 0)
+            if keys[pg.K_UP]:
+                render.update(0, -5)
+            if keys[pg.K_DOWN]:
+                render.update(0, 5)
+            if keys[pg.K_w]:
+                render.update(0, -5)
+            if keys[pg.K_s]:
+                render.update(0, 5)
+            if keys[pg.K_a]:
+                render.update(-5, 0)
+            if keys[pg.K_d]:
+                render.update(5, 0)
+            if keys[pg.K_x]:
+                show_debug_text = not show_debug_text
+            if keys[pg.K_SPACE]:
+                shells.shoot_shell(render.rect.center)
+                if not ra.sound_muted:
+                    # Play shooting sound
+                    pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3").play(0, 0, 0)
+                count += 1
 
         all_sprites.update()
         shells.update()
@@ -112,6 +117,25 @@ def game_loop(screen, clock, render, all_sprites, shells, enemies):
 
         if pg.sprite.groupcollide(shells, enemies, True, True):
             score += 1
+
+        if score == num_enemies:
+            game_won = True
+            show_debug_text = False
+            text_finish = pg.font.Font("font/Pacifico.ttf", 36)
+            text_finish_surface = text_finish.render("YOU WIN!Press 1 to exit", True, WHITE)
+            text_finish_rect = text_finish_surface.get_rect()
+            text_finish_rect.center = (screen.get_width() // 2, screen.get_height() // 2)
+            screen.blit(text_finish_surface, text_finish_rect)
+
+            keys = pg.key.get_pressed()
+            if keys[pg.K_1]:
+
+                running_program = False
+                #text_score_rect = text_score.get_rect()
+                text_score_rect.center = (screen.get_width() // 4, screen.get_height() // 4)
+                main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
+                                        lambda: game_loop(screen, clock, render, all_sprites, shells, enemies))
+                main_menu.draw_menu()
 
         pg.display.flip()
         clock.tick(60)
