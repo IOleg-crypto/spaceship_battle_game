@@ -63,7 +63,7 @@ class Enemy(pg.sprite.Sprite):
         self.image = pg.image.load(image_path)
         self.image = pg.transform.scale(self.image, (self.image.get_width() // 10, self.image.get_height() // 10))
         self.rect = self.image.get_rect(
-            center=(int(random.randint(2 , 400)), int(random.randint(1, 400))))
+            center=(int(random.randint(5, 400)), int(random.randint(6, 400))))
         self.speed = [2, 0]  # Move horizontally with a speed of 3
 
     def update(self):
@@ -74,8 +74,6 @@ class Enemy(pg.sprite.Sprite):
     def detect_screen_bounds(self):
         if self.rect.x >= self.screen.get_width() - self.rect.width or self.rect.x <= 0:
             self.speed[0] = -self.speed[0]  # Reverse direction
-
-
 
 
 class MovingBackground:
