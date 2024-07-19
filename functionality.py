@@ -156,3 +156,13 @@ class MainMenu:
         global sound_muted
         pg.mixer.music.set_volume(1 if not mute else 0)
         sound_muted = mute
+
+class Explosion(pg.sprite.Sprite):
+    def __init__(self, pos, sprite, speed):
+        super().__init__()
+        self.image = pg.transform.scale(sprite, (sprite.get_width() // 8, sprite.get_height() // 8))
+        self.rect = self.image.get_rect(center=pos)
+        self.speed = speed
+
+    def update(self):
+        pass
