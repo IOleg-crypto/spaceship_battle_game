@@ -26,7 +26,7 @@ class AmmoAbility(pg.sprite.Sprite):
 class RenderSpaceShip(pg.sprite.Sprite):
     def __init__(self, pos, sprite):
         super().__init__()
-        self.image = pg.transform.scale(sprite, (sprite.get_width() // 4, sprite.get_height() // 4))
+        self.image = pg.transform.scale(sprite, (sprite.get_width() // 8, sprite.get_height() // 8))
         self.rect = self.image.get_rect(center=pos)
 
     def update(self, x=0, y=0):
@@ -35,11 +35,11 @@ class RenderSpaceShip(pg.sprite.Sprite):
         self.detect_screen_bounds()
 
     def detect_screen_bounds(self):
-        if self.rect.right > pg.display.get_surface().get_width() + 10:
+        if self.rect.right > pg.display.get_surface().get_width():
             self.rect.left = 0
         elif self.rect.left < 0:
             self.rect.right = pg.display.get_surface().get_width()
-        if self.rect.bottom > pg.display.get_surface().get_height() + 10:
+        if self.rect.bottom > pg.display.get_surface().get_height():
             self.rect.top = 0
         elif self.rect.top < 0:
             self.rect.bottom = pg.display.get_surface().get_height()
@@ -61,9 +61,10 @@ class Enemy(pg.sprite.Sprite):
         super().__init__()
         self.screen = screen
         self.image = pg.image.load(image_path)
-        self.image = pg.transform.scale(self.image, (self.image.get_width() // 4, self.image.get_height() // 4))
-        self.rect = self.image.get_rect(center=(random.randint(self.image.get_width(), screen.get_width() - self.image.get_width()), self.image.get_height() // 2))
-        self.speed = [3, 0]  # Move horizontally with a speed of 3
+        self.image = pg.transform.scale(self.image, (self.image.get_width() // 10, self.image.get_height() // 10))
+        self.rect = self.image.get_rect(
+            center=(int(random.randint(2 , 400)), int(random.randint(1, 400))))
+        self.speed = [2, 0]  # Move horizontally with a speed of 3
 
     def update(self):
         if self.image:
@@ -155,4 +156,5 @@ class MainMenu:
 
     def set_sound_muted(self, value, mute):
         global sound_muted
+        pg.mixer.music.set_volume(1 if not mute else 0)
         sound_muted = mute

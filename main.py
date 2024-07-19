@@ -29,23 +29,29 @@ def main():
 
     render = ra.RenderSpaceShip(spaceship_pos, spaceship)
     load_enemy = ra.Enemy(screen, enemy_image_path)
-
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group(load_enemy)
     shells = ra.RenderSpaceShipShells(shell_spaceship)
+
+    # Create multiple enemies
+    # Number of enemies to create
+    enemies = [ra.Enemy(screen, enemy_image_path) for _ in range(num_enemies)]
+    for enemy in enemies:
+        enemy_sprite.add(enemy)
+        all_sprites.add(enemy)
 
     main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen,
                             lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy, enemy_sprite))
     main_menu.draw_menu()
 
-def game_loop(screen, clock, render, all_sprites, shells, load_enemy, enemy_sprite):
+
+def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite):
     running_program = True
     count = 0
     score = 0
 
     loading_background = pg.image.load(os.path.join("assets/background", "space_background.png"))
     show_debug_text = True
-    game_won = False
 
     while running_program:
         for event in pg.event.get():
@@ -53,31 +59,30 @@ def game_loop(screen, clock, render, all_sprites, shells, load_enemy, enemy_spri
                 running_program = False
 
         keys = pg.key.get_pressed()
-        if not game_won:
-            if keys[pg.K_LEFT]:
-                render.update(-5, 0)
-            if keys[pg.K_RIGHT]:
-                render.update(5, 0)
-            if keys[pg.K_UP]:
-                render.update(0, -5)
-            if keys[pg.K_DOWN]:
-                render.update(0, 5)
-            if keys[pg.K_w]:
-                render.update(0, -5)
-            if keys[pg.K_s]:
-                render.update(0, 5)
-            if keys[pg.K_a]:
-                render.update(-5, 0)
-            if keys[pg.K_d]:
-                render.update(5, 0)
-            if keys[pg.K_x]:
-                show_debug_text = not show_debug_text
-            if keys[pg.K_SPACE]:
-                shells.shoot_shell(render.rect.center)
-                if not ra.sound_muted:
-                    # Play shooting sound
-                    pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3").play(0, 0, 0)
-                count += 1
+        if keys[pg.K_LEFT]:
+            render.update(-5, 0)
+        if keys[pg.K_RIGHT]:
+            render.update(5, 0)
+        if keys[pg.K_UP]:
+            render.update(0, -5)
+        if keys[pg.K_DOWN]:
+            render.update(0, 5)
+        if keys[pg.K_w]:
+            render.update(0, -5)
+        if keys[pg.K_s]:
+            render.update(0, 5)
+        if keys[pg.K_a]:
+            render.update(-5, 0)
+        if keys[pg.K_d]:
+            render.update(5, 0)
+        if keys[pg.K_x]:
+            show_debug_text = not show_debug_text
+        if keys[pg.K_SPACE]:
+            shells.shoot_shell(render.rect.center)
+            if not ra.sound_muted:
+                # Play shooting sound
+                pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3").play(0, 0, 0)
+            count += 1
 
         all_sprites.update()
         shells.update()
@@ -100,6 +105,8 @@ def game_loop(screen, clock, render, all_sprites, shells, load_enemy, enemy_spri
         else:
             screen.blit(text_score, text_score_rect)
 
+
+
         all_sprites.draw(screen)
         enemy_sprite.draw(screen)
         shells.draw(screen)
@@ -107,10 +114,24 @@ def game_loop(screen, clock, render, all_sprites, shells, load_enemy, enemy_spri
         if pg.sprite.groupcollide(shells, enemy_sprite, True, True):
             score += 1
 
+        if score == num_enemies:
+            text_finish = font.render("You won!Press 1 to exit", True, WHITE)
+            text_finish_rect = text_finish.get_rect()
+            text_finish_rect.center = screen.get_rect().center
+            screen.blit(text_finish, text_finish_rect)
+            pg.mixer.music.stop()
+            if keys[pg.K_1]:
+                running_program = False
+                main_menu.draw_menu()
+
+
+
         pg.display.update()
         clock.tick(60)
 
     pg.quit()
 
+
 if __name__ == "__main__":
+    sound_muted = False  # Set this based on user settings
     main()
