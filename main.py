@@ -50,12 +50,13 @@ def main():
 
     main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen,
                             lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy, enemy_sprite,
-                                              enemy_image_path, alien_image_path, num_enemies, explosion_group))
+                                              enemy_image_path, alien_image_path, num_enemies, explosion_group,
+                                              enemies))
     main_menu.draw_menu()
 
 
 def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite, enemy_image_path, alien_image_path,
-              num_enemies, explosion_group):
+              num_enemies, explosion_group, enemies):
     running_program = True
     count = 0
     score = 0
@@ -82,7 +83,7 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                         screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
                         lambda: game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite,
                                           enemy_image_path, alien_image_path,
-                                          num_enemies)
+                                          num_enemies , explosion_group, enemies)
                     )
                     main_menu.draw_menu()
 
@@ -139,10 +140,14 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
         shells.draw(screen)
         explosion_group.draw(screen)
 
-        if pg.sprite.groupcollide(shells, enemy_sprite, True, True):
-            explosion = ra.Explosion(load_enemy.rect.centerx, load_enemy.rect.centery)
-            explosion_group.add(explosion)
-            score += 1
+        # Example condition to destroy an enemy (to be replaced with actual game logic)
+        for enemy in enemy_sprite:
+            if pg.sprite.groupcollide(shells, enemy_sprite, True, True):  # Replace with actual condition
+                explosion = enemy.destroy()
+                explosion_group.add(explosion)
+                #all_sprites.add(explosion)
+                score += 1
+                #enemy.kill()s
 
         if score == num_enemies or score == num_enemies + 1:
             game_finish = False
@@ -156,7 +161,7 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                 main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
                                         lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy,
                                                           enemy_sprite, enemy_image_path, alien_image_path,
-                                                          num_enemies))
+                                                          num_enemies, enemies))
                 main_menu.draw_menu()
 
         pg.display.update()

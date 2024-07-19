@@ -71,9 +71,14 @@ class Enemy(pg.sprite.Sprite):
             self.rect.x += self.speed[0]
             self.detect_screen_bounds()
 
+
     def detect_screen_bounds(self):
         if self.rect.x >= self.screen.get_width() - self.rect.width or self.rect.x <= 0:
             self.speed[0] = -self.speed[0]  # Reverse direction
+
+    def destroy(self):
+        explosion = Explosion(self.rect.centerx, self.rect.centery)
+        return explosion
 
 
 class MovingBackground:
@@ -165,7 +170,7 @@ class Explosion(pg.sprite.Sprite):
         self.y = y
         self.image = []
         self.images = []
-        for num in range(1, 8):
+        for num in range(1, 8): #loop to load next png(like animation)
             img = (pg.image.load(os.path.join("assets/explosions/explosion1", f"explosion{num}.png")))
             img = pg.transform.scale(img, (100, 100))
             self.images.append(img)
@@ -176,7 +181,7 @@ class Explosion(pg.sprite.Sprite):
         self.counter = 0
 
     def update(self):
-        explosion_speed = 3
+        explosion_speed = 4
         self.counter += 1
 
         if self.counter >= explosion_speed and self.frame_index < len(self.images) - 1:
