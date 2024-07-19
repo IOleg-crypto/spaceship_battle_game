@@ -8,16 +8,7 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 
-
-def create_enemies(screen, color, radius, num_enemies):
-    enemies = pg.sprite.Group()
-    for _ in range(num_enemies):
-        enemy = ra.Enemy(screen, color, radius)
-        enemies.add(enemy)
-    return enemies
-
-
-num_enemies = 10
+num_enemies = 14
 
 
 def main():
@@ -27,28 +18,32 @@ def main():
     screen = pg.display.set_mode((width, height))
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
+    programIcon = pg.image.load('assets/icon/icon.png')
 
-    enemies = create_enemies(screen, RED, 15, num_enemies)
+    pg.display.set_icon(programIcon)
 
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
-    spaceship = pg.image.load(os.path.join("assets", "spaceship2d.png"))
-    shell_spaceship = pg.image.load(os.path.join("assets", "shell.png"))
+    spaceship = pg.image.load(os.path.join("assets/spaceships", "spaceship2d.png"))
+    shell_spaceship = pg.image.load(os.path.join("assets/shells", "shell.png"))
+    enemy_image_path = os.path.join("assets/spaceships", "spaceship2d_2.png")
 
     render = ra.RenderSpaceShip(spaceship_pos, spaceship)
+    load_enemy = ra.Enemy(screen, enemy_image_path)
+
     all_sprites = pg.sprite.Group(render)
+    enemy_sprite = pg.sprite.Group(load_enemy)
     shells = ra.RenderSpaceShipShells(shell_spaceship)
 
     main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen,
-                            lambda: game_loop(screen, clock, render, all_sprites, shells, enemies))
+                            lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy, enemy_sprite))
     main_menu.draw_menu()
 
-
-def game_loop(screen, clock, render, all_sprites, shells, enemies):
+def game_loop(screen, clock, render, all_sprites, shells, load_enemy, enemy_sprite):
     running_program = True
     count = 0
     score = 0
 
-    loading_background = pg.image.load(os.path.join("assets", "space_background.png"))
+    loading_background = pg.image.load(os.path.join("assets/background", "space_background.png"))
     show_debug_text = True
     game_won = False
 
@@ -86,7 +81,7 @@ def game_loop(screen, clock, render, all_sprites, shells, enemies):
 
         all_sprites.update()
         shells.update()
-        enemies.update()
+        enemy_sprite.update()
 
         screen.blit(loading_background, (0, 0))
 
@@ -95,53 +90,27 @@ def game_loop(screen, clock, render, all_sprites, shells, enemies):
         text_surface = font.render("Shooted bullets : " + str(count), True, WHITE)
         text_score = font.render("Score : " + str(score), True, WHITE)
 
-        # Получение прямоугольника текста
         text_rect = text_surface.get_rect()
         text_score_rect = text_score.get_rect()
-        # Отображение текста, если show_debug_text установлено в True
         if show_debug_text:
             screen.blit(text_surface, text_rect)
-            # Set the position of the text
-            text_rect.topleft = (10, 10)  # Example position, adjust as needed
-            text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)  # Adjust the vertical gap as needed
+            text_rect.topleft = (10, 10)
+            text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)
             screen.blit(text_score, text_score_rect)
         else:
             screen.blit(text_score, text_score_rect)
 
-        # Update the screen
-        pg.display.update()
-
         all_sprites.draw(screen)
+        enemy_sprite.draw(screen)
         shells.draw(screen)
-        enemies.draw(screen)
 
-        if pg.sprite.groupcollide(shells, enemies, True, True):
+        if pg.sprite.groupcollide(shells, enemy_sprite, True, True):
             score += 1
 
-        if score == num_enemies:
-            game_won = True
-            show_debug_text = False
-            text_finish = pg.font.Font("font/Pacifico.ttf", 36)
-            text_finish_surface = text_finish.render("YOU WIN!Press 1 to exit", True, WHITE)
-            text_finish_rect = text_finish_surface.get_rect()
-            text_finish_rect.center = (screen.get_width() // 2, screen.get_height() // 2)
-            screen.blit(text_finish_surface, text_finish_rect)
-
-            keys = pg.key.get_pressed()
-            if keys[pg.K_1]:
-
-                running_program = False
-                #text_score_rect = text_score.get_rect()
-                text_score_rect.center = (screen.get_width() // 4, screen.get_height() // 4)
-                main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
-                                        lambda: game_loop(screen, clock, render, all_sprites, shells, enemies))
-                main_menu.draw_menu()
-
-        pg.display.flip()
+        pg.display.update()
         clock.tick(60)
 
     pg.quit()
-
 
 if __name__ == "__main__":
     main()

@@ -35,11 +35,11 @@ class RenderSpaceShip(pg.sprite.Sprite):
         self.detect_screen_bounds()
 
     def detect_screen_bounds(self):
-        if self.rect.right > pg.display.get_surface().get_width():
+        if self.rect.right > pg.display.get_surface().get_width() + 10:
             self.rect.left = 0
         elif self.rect.left < 0:
             self.rect.right = pg.display.get_surface().get_width()
-        if self.rect.bottom > pg.display.get_surface().get_height():
+        if self.rect.bottom > pg.display.get_surface().get_height() + 10:
             self.rect.top = 0
         elif self.rect.top < 0:
             self.rect.bottom = pg.display.get_surface().get_height()
@@ -55,32 +55,26 @@ class RenderSpaceShipShells(pg.sprite.Group):
         self.add(shell)
 
 
+# This class creates enemies (refactoring)
 class Enemy(pg.sprite.Sprite):
-    def __init__(self, screen, color, radius):
+    def __init__(self, screen, image_path):
         super().__init__()
         self.screen = screen
-        self.color = color
-        self.radius = radius
-        self.image = pg.Surface((radius * 2, radius * 2), pg.SRCALPHA)
-        pg.draw.circle(self.image, color, (radius, radius), radius)
-        self.rect = self.image.get_rect(
-            center=(random.randint(0, screen.get_width()), random.randint(0, screen.get_height())))
-        self.speed = [random.choice([-1, 1]), random.choice([-1, 1])]
+        self.image = pg.image.load(image_path)
+        self.image = pg.transform.scale(self.image, (self.image.get_width() // 4, self.image.get_height() // 4))
+        self.rect = self.image.get_rect(center=(random.randint(self.image.get_width(), screen.get_width() - self.image.get_width()), self.image.get_height() // 2))
+        self.speed = [3, 0]  # Move horizontally with a speed of 3
 
     def update(self):
-        self.rect.x += self.speed[0]
-        self.rect.y += self.speed[1]
-        self.detect_screen_bounds()
+        if self.image:
+            self.rect.x += self.speed[0]
+            self.detect_screen_bounds()
 
     def detect_screen_bounds(self):
-        if self.rect.right > self.screen.get_width() - self.radius:
-            self.rect.left = 0
-        elif self.rect.left < 0:
-            self.rect.right = self.screen.get_width() - self.radius
-        if self.rect.bottom > self.screen.get_height() - self.radius:
-            self.rect.top = 0
-        elif self.rect.top < 0:
-            self.rect.bottom = self.screen.get_height() - self.radius
+        if self.rect.x >= self.screen.get_width() - self.rect.width or self.rect.x <= 0:
+            self.speed[0] = -self.speed[0]  # Reverse direction
+
+
 
 
 class MovingBackground:
@@ -108,15 +102,23 @@ class MainMenu:
         self.height = height
         self.screen = screen
         self.start_game_callback = start_game_callback
-        self.bg = MovingBackground(screen, os.path.join("assets", "background.jpg"), 2)
+        self.bg = MovingBackground(screen, os.path.join("assets/background", "background.jpg"), 2)
 
         self.custom_theme = pm.themes.THEME_DARK.copy()
         self.custom_theme.background_color = pm.baseimage.BaseImage(
-            image_path=os.path.join("assets", "background.jpg"),
+            image_path=os.path.join("assets/background", "background.jpg"),
             drawing_mode=pm.baseimage.IMAGE_MODE_FILL
         )
 
     def draw_menu(self):
+
+        pg.mixer.init()
+
+        if not sound_muted:
+            # Load and play the music
+            pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
+            pg.mixer.music.play(-1)  # Play the music in a loop
+
         main_menu = pm.Menu(title=self.title,
                             width=self.width,
                             height=self.height,
