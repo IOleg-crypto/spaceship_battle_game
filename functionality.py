@@ -157,12 +157,31 @@ class MainMenu:
         pg.mixer.music.set_volume(1 if not mute else 0)
         sound_muted = mute
 
+
 class Explosion(pg.sprite.Sprite):
-    def __init__(self, pos, sprite, speed):
-        super().__init__()
-        self.image = pg.transform.scale(sprite, (sprite.get_width() // 8, sprite.get_height() // 8))
-        self.rect = self.image.get_rect(center=pos)
-        self.speed = speed
+    def __init__(self, x, y):
+        pg.sprite.Sprite.__init__(self)
+        self.x = x
+        self.y = y
+        self.image = []
+        self.images = []
+        for num in range(1, 8):
+            img = (pg.image.load(os.path.join("assets/explosions/explosion1", f"explosion{num}.png")))
+            img = pg.transform.scale(img, (100, 100))
+            self.images.append(img)
+        self.frame_index = 0
+        self.image = self.images[self.frame_index]
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+        self.counter = 0
 
     def update(self):
-        pass
+        explosion_speed = 3
+        self.counter += 1
+
+        if self.counter >= explosion_speed and self.frame_index < len(self.images) - 1:
+            self.frame_index += 1
+            self.image = self.images[self.frame_index]
+
+        if self.frame_index >= len(self.images) - 1 and self.counter >= explosion_speed:
+            self.kill()

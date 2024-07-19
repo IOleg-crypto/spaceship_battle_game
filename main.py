@@ -39,6 +39,8 @@ def main():
     enemy_sprite = pg.sprite.Group(load_enemy)
     shells = ra.RenderSpaceShipShells(shell_spaceship)
 
+    explosion_group = pg.sprite.Group()
+
     # Create multiple enemies
     # Number of enemies to create
     enemies = [ra.Enemy(screen, random.choice([alien_image_path, enemy_image_path])) for _ in range(num_enemies)]
@@ -48,17 +50,17 @@ def main():
 
     main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen,
                             lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy, enemy_sprite,
-                                              enemy_image_path, alien_image_path, num_enemies))
+                                              enemy_image_path, alien_image_path, num_enemies, explosion_group))
     main_menu.draw_menu()
 
 
 def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite, enemy_image_path, alien_image_path,
-              num_enemies):
+              num_enemies, explosion_group):
     running_program = True
     count = 0
     score = 0
     enemy_image_path = os.path.join("assets/spaceships", "spaceship2d_2.png")
-    load_enemy = ra.Enemy(screen, enemy_image_path)
+    load_enemy = ra.Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
     game_finish = True
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group()
@@ -135,8 +137,11 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
         all_sprites.draw(screen)
         enemy_sprite.draw(screen)
         shells.draw(screen)
+        explosion_group.draw(screen)
 
         if pg.sprite.groupcollide(shells, enemy_sprite, True, True):
+            explosion = ra.Explosion(load_enemy.rect.centerx, load_enemy.rect.centery)
+            explosion_group.add(explosion)
             score += 1
 
         if score == num_enemies or score == num_enemies + 1:
@@ -155,7 +160,9 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                 main_menu.draw_menu()
 
         pg.display.update()
+        explosion_group.update()
         clock.tick(60)
+        pg.display.flip()
 
     pg.quit()
 
