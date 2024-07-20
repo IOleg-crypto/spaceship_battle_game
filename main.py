@@ -106,6 +106,15 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                 explosion_group.add(explosion)
                 all_sprites.add(explosion)
 
+        for bullet in bullet_group:
+            if pg.sprite.spritecollide(bullet, spaceship_sprite, False):
+                explosion = spaceship.take_damage(20)
+                bullet.kill()
+                if explosion:
+                    explosion_group.add(explosion)
+                    all_sprites.add(explosion)
+
+
 
         keys = pg.key.get_pressed()
         if game_finish:
@@ -137,6 +146,9 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
         all_sprites.update()
         shells.update()
         enemy_sprite.update()
+        spaceship_sprite.update(screen)
+
+
 
         screen.blit(loading_background, (0, 0))
 
@@ -183,18 +195,18 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                 main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
                                         lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy,
                                                           enemy_sprite, enemy_image_path, alien_image_path,
-                                                          num_enemies, enemies, num_enemies), spaceship)
+                                                          num_enemies, enemies, num_enemies))
                 main_menu.draw_menu()
 
 
         pg.display.update()
         explosion_group.update()
-        clock.tick(60)
         pg.display.flip()
+        clock.tick(60)
 
     pg.quit()
 
 
 if __name__ == "__main__":
-    sound_muted = True  # Set this based on user settings
+    sound_muted = False  # Set this based on user settings
     main()

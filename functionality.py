@@ -48,18 +48,24 @@ class RenderSpaceShip(pg.sprite.Sprite):
             self.rect.bottom = pg.display.get_surface().get_height()
 
     def draw_health_bar(self):
-        pg.draw.rect(self.image, GREEN, (0, 0, self.image.get_width() * self.health / 100, 5))
-        pg.draw.rect(self.image, RED, (0, 0, self.image.get_width(), 5), 1)
-
+        bar_length = self.image.get_width()
+        bar_height = 5
+        fill = (self.health / 100) * bar_length
+        fill_color = (0, 255, 0)  # Green
+        border_color = (255, 0, 0)  # Red
+        fill_rect = pg.Rect(0, 0, fill, bar_height)
+        border_rect = pg.Rect(0, 0, bar_length, bar_height)
+        pg.draw.rect(self.image, fill_color, fill_rect)
+        pg.draw.rect(self.image, border_color, border_rect, 1)
 
     def take_damage(self, amount):
-        explosion_group = pg.sprite.Group()
         self.health -= amount
         if self.health <= 0:
             self.kill()
-            # Add additional logic for when the spaceship is destroyed, if needed
             explosion = Explosion(self.rect.centerx, self.rect.centery)
-            explosion_group.add(explosion)
+            return explosion
+        return None
+
 
 class RenderSpaceShipShells(pg.sprite.Group):
     def __init__(self, sprite_shell):
@@ -81,7 +87,7 @@ class Enemy(pg.sprite.Sprite):
         self.rect = self.image.get_rect(
             center=(int(random.randint(5, 400)), int(random.randint(6, 400))))
         self.speed = [2, 0]  # Move horizontally with a speed of 2
-        self.shoot_delay = 1000  # milliseconds
+        self.shoot_delay = 1500  # milliseconds
         self.last_shot = pg.time.get_ticks()
         self.health = 200
 
@@ -98,6 +104,7 @@ class Enemy(pg.sprite.Sprite):
         explosion = Explosion(self.rect.centerx, self.rect.centery)
         return explosion
 
+    """
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
@@ -105,6 +112,7 @@ class Enemy(pg.sprite.Sprite):
             self.kill()
             return explosion
         return None
+    """
 
     def shoot(self):
         now = pg.time.get_ticks()
@@ -207,7 +215,7 @@ class Explosion(pg.sprite.Sprite):
         self.images = []
         for num in range(1, 8):  # loop to load next png(like animation)
             img = (pg.image.load(os.path.join("assets/explosions/explosion1", f"explosion{num}.png")))
-            img = pg.transform.scale(img, (100, 100))
+            img = pg.transform.scale(img, (150, 150))
             self.images.append(img)
         self.frame_index = 0
         self.image = self.images[self.frame_index]
@@ -216,11 +224,11 @@ class Explosion(pg.sprite.Sprite):
         self.counter = 0
 
     def update(self):
-        explosion_speed = 4
+        explosion_speed = 2
         self.counter += 1
 
         if self.counter >= explosion_speed and self.frame_index < len(self.images) - 1:
-            self.frame_index += 1
+            self.frame_index += 2
             self.image = self.images[self.frame_index]
 
         if self.frame_index >= len(self.images) - 1 and self.counter >= explosion_speed:
