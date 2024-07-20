@@ -51,13 +51,12 @@ def main():
     main_menu = ra.MainMenu(width, height, "Spaceship Battle", screen,
                             lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy, enemy_sprite,
                                               enemy_image_path, alien_image_path, num_enemies, explosion_group,
-                                              enemies))
+                                              enemies , spaceship))
     main_menu.draw_menu()
 
 
 def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite, enemy_image_path, alien_image_path,
-              num_enemies, explosion_group, enemies):
-
+              num_enemies, explosion_group, enemies, spaceship):
     running_program = True
     game_finish = True
     show_debug_text = True
@@ -72,17 +71,17 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
     enemy_sprite = pg.sprite.Group()
     shells_enemy_sprite = pg.sprite.Group()
     bullet_group = pg.sprite.Group()
-
+    spaceship_sprite = pg.sprite.Group()
 
     enemies = create_enemies(screen, enemy_image_path, alien_image_path, num_enemies)
     for enemy in enemies:
         enemy_sprite.add(enemy)
         all_sprites.add(enemy)
 
-
     while running_program:
         for event in pg.event.get():
             if event.type == pg.QUIT:
+                pg.display.flip()
                 running_program = False
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_1:
@@ -90,11 +89,9 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                         screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
                         lambda: game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite,
                                           enemy_image_path, alien_image_path,
-                                          num_enemies , explosion_group, enemies)
+                                          num_enemies, explosion_group, enemies , spaceship)
                     )
                     main_menu.draw_menu()
-
-
 
         # enemy shooting
         for enemy in enemy_sprite:
@@ -104,10 +101,11 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                 all_sprites.add(bullet)
 
         for bullet in shells_enemy_sprite:
-            explosion = bullet.check_collision(enemy_sprite , bullet_group)
+            explosion = bullet.check_collision(enemy_sprite, bullet_group)
             if explosion:
                 explosion_group.add(explosion)
                 all_sprites.add(explosion)
+
 
         keys = pg.key.get_pressed()
         if game_finish:
@@ -170,8 +168,8 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                 all_sprites.add(explosion)
                 score += 1
 
-
-        if score == num_enemies or score == num_enemies + 1 or score == num_enemies - 1:
+        # Game over condition (fixed bug , that you can`t finish game , even enemies are destroyed)
+        if len(enemy_sprite) == 0:
             game_finish = False
             text_finish = font.render("You won!Press 1 to exit", True, WHITE)
             text_finish_rect = text_finish.get_rect()
@@ -185,8 +183,9 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                 main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
                                         lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy,
                                                           enemy_sprite, enemy_image_path, alien_image_path,
-                                                          num_enemies, enemies))
+                                                          num_enemies, enemies, num_enemies), spaceship)
                 main_menu.draw_menu()
+
 
         pg.display.update()
         explosion_group.update()

@@ -6,6 +6,7 @@ import os
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
 
 sound_muted = False
 
@@ -47,22 +48,18 @@ class RenderSpaceShip(pg.sprite.Sprite):
             self.rect.bottom = pg.display.get_surface().get_height()
 
     def draw_health_bar(self):
-        bar_length = 100
-        bar_height = 10
-        fill = (self.health / 100) * bar_length
-        border_color = (255, 255, 255)
-        fill_color = (0, 255, 0)
-        border_rect = pg.Rect(self.rect.x, self.rect.y - 20, bar_length, bar_height)
-        fill_rect = pg.Rect(self.rect.x, self.rect.y - 20, fill, bar_height)
-        pg.draw.rect(self.image, fill_color, fill_rect)
-        pg.draw.rect(self.image, border_color, border_rect, 1)
+        pg.draw.rect(self.image, GREEN, (0, 0, self.image.get_width() * self.health / 100, 5))
+        pg.draw.rect(self.image, RED, (0, 0, self.image.get_width(), 5), 1)
+
 
     def take_damage(self, amount):
+        explosion_group = pg.sprite.Group()
         self.health -= amount
         if self.health <= 0:
             self.kill()
             # Add additional logic for when the spaceship is destroyed, if needed
-
+            explosion = Explosion(self.rect.centerx, self.rect.centery)
+            explosion_group.add(explosion)
 
 class RenderSpaceShipShells(pg.sprite.Group):
     def __init__(self, sprite_shell):
@@ -100,17 +97,6 @@ class Enemy(pg.sprite.Sprite):
     def destroy(self):
         explosion = Explosion(self.rect.centerx, self.rect.centery)
         return explosion
-
-    def draw_health_bar(self):
-        bar_length = 50
-        bar_height = 5
-        fill = (self.health / 100) * bar_length
-        border_color = (255, 255, 255)
-        fill_color = (255, 0, 0)
-        border_rect = pg.Rect(self.rect.x, self.rect.y - 10, bar_length, bar_height)
-        fill_rect = pg.Rect(self.rect.x, self.rect.y - 10, fill, bar_height)
-        pg.draw.rect(self.screen, fill_color, fill_rect)
-        pg.draw.rect(self.screen, border_color, border_rect, 1)
 
     def take_damage(self, amount):
         self.health -= amount
