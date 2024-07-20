@@ -28,11 +28,13 @@ class RenderSpaceShip(pg.sprite.Sprite):
         super().__init__()
         self.image = pg.transform.scale(sprite, (sprite.get_width() // 8, sprite.get_height() // 8))
         self.rect = self.image.get_rect(center=pos)
+        self.health = 100
 
     def update(self, x=0, y=0):
         self.rect.x += x
         self.rect.y += y
         self.detect_screen_bounds()
+        self.draw_health_bar()
 
     def detect_screen_bounds(self):
         if self.rect.right > pg.display.get_surface().get_width():
@@ -43,6 +45,23 @@ class RenderSpaceShip(pg.sprite.Sprite):
             self.rect.top = 0
         elif self.rect.top < 0:
             self.rect.bottom = pg.display.get_surface().get_height()
+
+    def draw_health_bar(self):
+        bar_length = 100
+        bar_height = 10
+        fill = (self.health / 100) * bar_length
+        border_color = (255, 255, 255)
+        fill_color = (0, 255, 0)
+        border_rect = pg.Rect(self.rect.x, self.rect.y - 20, bar_length, bar_height)
+        fill_rect = pg.Rect(self.rect.x, self.rect.y - 20, fill, bar_height)
+        pg.draw.rect(self.image, fill_color, fill_rect)
+        pg.draw.rect(self.image, border_color, border_rect, 1)
+
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health <= 0:
+            self.kill()
+            # Add additional logic for when the spaceship is destroyed, if needed
 
 
 class RenderSpaceShipShells(pg.sprite.Group):
@@ -67,12 +86,12 @@ class Enemy(pg.sprite.Sprite):
         self.speed = [2, 0]  # Move horizontally with a speed of 2
         self.shoot_delay = 1000  # milliseconds
         self.last_shot = pg.time.get_ticks()
+        self.health = 200
 
     def update(self):
         if self.image:
             self.rect.x += self.speed[0]
             self.detect_screen_bounds()
-
 
     def detect_screen_bounds(self):
         if self.rect.x >= self.screen.get_width() - self.rect.width or self.rect.x <= 0:
@@ -82,14 +101,32 @@ class Enemy(pg.sprite.Sprite):
         explosion = Explosion(self.rect.centerx, self.rect.centery)
         return explosion
 
+    def draw_health_bar(self):
+        bar_length = 50
+        bar_height = 5
+        fill = (self.health / 100) * bar_length
+        border_color = (255, 255, 255)
+        fill_color = (255, 0, 0)
+        border_rect = pg.Rect(self.rect.x, self.rect.y - 10, bar_length, bar_height)
+        fill_rect = pg.Rect(self.rect.x, self.rect.y - 10, fill, bar_height)
+        pg.draw.rect(self.screen, fill_color, fill_rect)
+        pg.draw.rect(self.screen, border_color, border_rect, 1)
+
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health <= 0:
+            explosion = Explosion(self.rect.centerx, self.rect.centery)
+            self.kill()
+            return explosion
+        return None
+
     def shoot(self):
         now = pg.time.get_ticks()
         if now - self.last_shot > self.shoot_delay:
             self.last_shot = now
-            bullet = Bullet(self.rect.centerx, self.rect.bottom, 1)  # Speed 5 downwards
+            bullet = Bullet(self.rect.centerx, self.rect.bottom, 1, self)  # Speed 5 downwards
             return bullet
         return None
-
 
 
 # TODO : moving background(image) I donna fix this(I want make background , where moving stars , maybe it easy , but i`m slightly lazy)
@@ -182,7 +219,7 @@ class Explosion(pg.sprite.Sprite):
         self.y = y
         self.image = []
         self.images = []
-        for num in range(1, 8): #loop to load next png(like animation)
+        for num in range(1, 8):  # loop to load next png(like animation)
             img = (pg.image.load(os.path.join("assets/explosions/explosion1", f"explosion{num}.png")))
             img = pg.transform.scale(img, (100, 100))
             self.images.append(img)
@@ -203,15 +240,28 @@ class Explosion(pg.sprite.Sprite):
         if self.frame_index >= len(self.images) - 1 and self.counter >= explosion_speed:
             self.kill()
 
+
 class Bullet(pg.sprite.Sprite):
-    def __init__(self, x, y, speed_y):
+    def __init__(self, x, y, speed_y, owner):
         super().__init__()
         self.image = pg.Surface((5, 10))
         self.image.fill((255, 0, 0))
         self.rect = self.image.get_rect(center=(x, y))
         self.speed_y = speed_y
+        self.owner = owner
 
     def update(self):
         self.rect.y += self.speed_y
         if self.rect.bottom < 0 or self.rect.top > 600:  # Assuming screen height is 600
             self.kill()
+
+    def check_collision(self, enemy_group, target_group):
+        hits = pg.sprite.spritecollide(self, enemy_group, target_group, False)
+        for hit in hits:
+            explosion = hit.take_damage(10)  # Reduce health by 10
+            self.kill()
+            if hit != self.owner:
+                hit.take_damage(10)  # Reduce health by 10
+                self.kill()
+                return
+            return explosion

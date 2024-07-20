@@ -1,12 +1,12 @@
 import pygame as pg
 import os
-import pygame_menu as pm
 import functionality as ra
 import random
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
 
 num_enemies = 14
 
@@ -71,10 +71,13 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group()
     shells_enemy_sprite = pg.sprite.Group()
+    bullet_group = pg.sprite.Group()
 
 
     enemies = create_enemies(screen, enemy_image_path, alien_image_path, num_enemies)
-
+    for enemy in enemies:
+        enemy_sprite.add(enemy)
+        all_sprites.add(enemy)
 
 
     while running_program:
@@ -91,16 +94,20 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                     )
                     main_menu.draw_menu()
 
-        for enemy in enemies:
-            enemy_sprite.add(enemy)
-            all_sprites.add(enemy)
+
 
         # enemy shooting
         for enemy in enemy_sprite:
             bullet = enemy.shoot()
             if bullet:
-                shells_enemy_sprite.add(bullet)
+                bullet_group.add(bullet)
                 all_sprites.add(bullet)
+
+        for bullet in shells_enemy_sprite:
+            explosion = bullet.check_collision(enemy_sprite , bullet_group)
+            if explosion:
+                explosion_group.add(explosion)
+                all_sprites.add(explosion)
 
         keys = pg.key.get_pressed()
         if game_finish:
