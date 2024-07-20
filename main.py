@@ -57,22 +57,26 @@ def main():
 
 def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite, enemy_image_path, alien_image_path,
               num_enemies, explosion_group, enemies):
+
     running_program = True
+    game_finish = True
+    show_debug_text = True
     count = 0
     score = 0
+
     enemy_image_path = os.path.join("assets/spaceships", "spaceship2d_2.png")
     load_enemy = ra.Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
-    game_finish = True
+    loading_background = pg.image.load(os.path.join("assets/background", "space_background.png"))
+
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group()
+    shells_enemy_sprite = pg.sprite.Group()
+
 
     enemies = create_enemies(screen, enemy_image_path, alien_image_path, num_enemies)
-    for enemy in enemies:
-        enemy_sprite.add(enemy)
-        all_sprites.add(enemy)
 
-    loading_background = pg.image.load(os.path.join("assets/background", "space_background.png"))
-    show_debug_text = True
+
+
     while running_program:
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -86,6 +90,17 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                                           num_enemies , explosion_group, enemies)
                     )
                     main_menu.draw_menu()
+
+        for enemy in enemies:
+            enemy_sprite.add(enemy)
+            all_sprites.add(enemy)
+
+        # enemy shooting
+        for enemy in enemy_sprite:
+            bullet = enemy.shoot()
+            if bullet:
+                shells_enemy_sprite.add(bullet)
+                all_sprites.add(bullet)
 
         keys = pg.key.get_pressed()
         if game_finish:
@@ -145,17 +160,19 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
             if pg.sprite.groupcollide(shells, enemy_sprite, True, True):  # Replace with actual condition
                 explosion = enemy.destroy()
                 explosion_group.add(explosion)
-                #all_sprites.add(explosion)
+                all_sprites.add(explosion)
                 score += 1
-                #enemy.kill()s
 
-        if score == num_enemies or score == num_enemies + 1:
+
+        if score == num_enemies or score == num_enemies + 1 or score == num_enemies - 1:
             game_finish = False
             text_finish = font.render("You won!Press 1 to exit", True, WHITE)
             text_finish_rect = text_finish.get_rect()
             text_finish_rect.center = screen.get_rect().center
             screen.blit(text_finish, text_finish_rect)
+
             pg.mixer.music.stop()
+            pg.mixer.Sound("sound/victory/victory.mp3").play(0, 0, 0)
             if keys[pg.K_1]:
                 running_program = False
                 main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle", screen,

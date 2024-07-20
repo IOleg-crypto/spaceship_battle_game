@@ -64,7 +64,9 @@ class Enemy(pg.sprite.Sprite):
         self.image = pg.transform.scale(self.image, (self.image.get_width() // 10, self.image.get_height() // 10))
         self.rect = self.image.get_rect(
             center=(int(random.randint(5, 400)), int(random.randint(6, 400))))
-        self.speed = [2, 0]  # Move horizontally with a speed of 3
+        self.speed = [2, 0]  # Move horizontally with a speed of 2
+        self.shoot_delay = 1000  # milliseconds
+        self.last_shot = pg.time.get_ticks()
 
     def update(self):
         if self.image:
@@ -80,7 +82,17 @@ class Enemy(pg.sprite.Sprite):
         explosion = Explosion(self.rect.centerx, self.rect.centery)
         return explosion
 
+    def shoot(self):
+        now = pg.time.get_ticks()
+        if now - self.last_shot > self.shoot_delay:
+            self.last_shot = now
+            bullet = Bullet(self.rect.centerx, self.rect.bottom, 1)  # Speed 5 downwards
+            return bullet
+        return None
 
+
+
+# TODO : moving background(image) I donna fix this(I want make background , where moving stars , maybe it easy , but i`m slightly lazy)
 class MovingBackground:
     def __init__(self, screen, image_path, speed):
         self.screen = screen
@@ -189,4 +201,17 @@ class Explosion(pg.sprite.Sprite):
             self.image = self.images[self.frame_index]
 
         if self.frame_index >= len(self.images) - 1 and self.counter >= explosion_speed:
+            self.kill()
+
+class Bullet(pg.sprite.Sprite):
+    def __init__(self, x, y, speed_y):
+        super().__init__()
+        self.image = pg.Surface((5, 10))
+        self.image.fill((255, 0, 0))
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed_y = speed_y
+
+    def update(self):
+        self.rect.y += self.speed_y
+        if self.rect.bottom < 0 or self.rect.top > 600:  # Assuming screen height is 600
             self.kill()
