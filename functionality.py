@@ -55,8 +55,8 @@ class RenderSpaceShip(pg.sprite.Sprite):
         health_percentage = self.health / 100
         pg.draw.rect(self.image, GREEN, (0, 0, bar_length, bar_height))
         pg.draw.rect(self.image, RED, (0, 0, bar_length * health_percentage, bar_height))
-
         return self.health
+
 
     def destroy(self):
         explosion = Explosion(self.rect.centerx, self.rect.centery)

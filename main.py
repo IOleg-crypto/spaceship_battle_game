@@ -63,6 +63,8 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
     count = 0
     score = 0
 
+    render.health = 100
+
     enemy_image_path = os.path.join("assets/spaceships", "spaceship2d_2.png")
     load_enemy = ra.Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
     loading_background = pg.image.load(os.path.join("assets/background", "space_background.png"))
