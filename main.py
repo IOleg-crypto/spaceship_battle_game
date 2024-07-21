@@ -95,38 +95,34 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                     )
                     main_menu.draw_menu()
 
-                keys = pg.key.get_pressed()
+        keys = pg.key.get_pressed()
 
-                # Enemy shooting
-                for enemy in enemy_sprite:
-                    bullet = enemy.shoot()
-                    if bullet:
-                        enemy_shells.add(bullet)
-                        all_sprites.add(bullet)
+        # Enemy shooting
+        for enemy in enemy_sprite:
+            bullet = enemy.shoot()
+            if bullet:
+                enemy_shells.add(bullet)
+                all_sprites.add(bullet)
 
-                for bullet in enemy_shells:
-                    if pg.sprite.spritecollideany(render, enemy_shells):  # Check collision with player's spaceship
-                        if render.take_damage(10) == 0:  # Adjust damage as needed
-                            game_finish = False
-                            text_game_over = pg.font.Font("font/Pacifico.ttf", 36).render("Game Over! Press 1 to exit",
-                                                                                          True, RED)
-                            text_game_over_rect = text_game_over.get_rect()
-                            text_game_over_rect.center = screen.get_rect().center
-                            screen.blit(text_game_over, text_game_over_rect)
-                            pg.mixer.music.stop()
-                            #pg.mixer.Sound("sound/game_over/game_over.mp3").play(0, 0, 0)
-                            if keys[pg.K_1]:
-                                running_program = False
-                                main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle",
-                                                        screen,
-                                                        lambda: game_loop(screen, clock, render, all_sprites, shells,
-                                                                          load_enemy,
-                                                                          enemy_sprite, enemy_image_path,
-                                                                          alien_image_path,
-                                                                          num_enemies, explosion_group, enemies,
-                                                                          spaceship))
-                                main_menu.draw_menu()
-                        bullet.kill()  # Remove bullet after collision
+        for bullet in enemy_shells:
+            if pg.sprite.spritecollideany(render, enemy_shells):  # Check collision with player's spaceship
+                if render.take_damage() <= 0:  # Adjust damage as needed
+                    game_finish = False
+                    text_game_over = pg.font.Font("font/Pacifico.ttf", 36).render("Game Over! Press 1 to exit",
+                                                                                  True, RED)
+                    text_game_over_rect = text_game_over.get_rect()
+                    text_game_over_rect.center = screen.get_rect().center
+                    screen.blit(text_game_over, text_game_over_rect)
+                    pg.mixer.music.stop()
+                    #pg.mixer.Sound("sound/game_over/game_over.mp3").play(0, 0, 0)
+                    if keys[pg.K_1]:
+                        running_program = False
+                        main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
+                                                lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy,
+                                                                  enemy_sprite, enemy_image_path, alien_image_path,
+                                                                  num_enemies, explosion_group, enemies, spaceship))
+                        main_menu.draw_menu()
+                bullet.kill()  # Remove bullet after collision
 
         keys = pg.key.get_pressed()
         if game_finish:
@@ -165,22 +161,26 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
         font = pg.font.Font("font/Pacifico.ttf", 36)
         text_surface = font.render("Shooted bullets : " + str(count), True, WHITE)
         text_score = font.render("Score : " + str(score), True, WHITE)
+        text_health = font.render("Health : " + str(render.health), True, RED)
 
         text_rect = text_surface.get_rect()
         text_score_rect = text_score.get_rect()
+        text_health_rect = text_health.get_rect()
         if show_debug_text:
             screen.blit(text_surface, text_rect)
             text_rect.topleft = (10, 10)
             text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)
+            text_health_rect.topleft = (text_score_rect.left, text_score_rect.bottom + 10)
             screen.blit(text_score, text_score_rect)
+            screen.blit(text_health, text_health_rect)
         else:
             screen.blit(text_score, text_score_rect)
+            screen.blit(text_health, text_health_rect)
 
         all_sprites.draw(screen)
         enemy_sprite.draw(screen)
         shells.draw(screen)
         explosion_group.draw(screen)
-
 
         # Handle enemy destruction and spaceship health reduction
         for enemy in enemy_sprite:
@@ -230,6 +230,7 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
         clock.tick(60)
 
     pg.quit()
+
 
 
 

@@ -35,7 +35,7 @@ class RenderSpaceShip(pg.sprite.Sprite):
         self.rect.x += x
         self.rect.y += y
         self.detect_screen_bounds()
-        self.take_damage(50)
+        self.take_damage()
     def detect_screen_bounds(self):
         if self.rect.right > pg.display.get_surface().get_width():
             self.rect.left = 0
@@ -47,14 +47,13 @@ class RenderSpaceShip(pg.sprite.Sprite):
             self.rect.bottom = pg.display.get_surface().get_height()
 
 
-    def take_damage(self, amount):
-        self.health = -amount
+    def take_damage(self):
         bar_length = self.image.get_width()
         bar_height = 5
+        health_percentage = self.health / 100
         pg.draw.rect(self.image, GREEN, (0, 0, bar_length, bar_height))
-        pg.draw.rect(self.image, RED, (0, 0, bar_length * (self.health - amount), bar_height))
-
-        return self.health <= 0
+        pg.draw.rect(self.image, RED, (0, 0, bar_length * health_percentage, bar_height))
+        return self.health
 
     def destroy(self):
         explosion = Explosion(self.rect.centerx, self.rect.centery)
