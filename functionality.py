@@ -35,8 +35,7 @@ class RenderSpaceShip(pg.sprite.Sprite):
         self.rect.x += x
         self.rect.y += y
         self.detect_screen_bounds()
-        self.draw_health_bar()
-
+        self.take_damage(50)
     def detect_screen_bounds(self):
         if self.rect.right > pg.display.get_surface().get_width():
             self.rect.left = 0
@@ -47,24 +46,19 @@ class RenderSpaceShip(pg.sprite.Sprite):
         elif self.rect.top < 0:
             self.rect.bottom = pg.display.get_surface().get_height()
 
-    def draw_health_bar(self):
-        bar_length = self.image.get_width()
-        bar_height = 5
-        fill = (self.health / 100) * bar_length
-        fill_color = (0, 255, 0)  # Green
-        border_color = (255, 0, 0)  # Red
-        fill_rect = pg.Rect(0, 0, fill, bar_height)
-        border_rect = pg.Rect(0, 0, bar_length, bar_height)
-        pg.draw.rect(self.image, fill_color, fill_rect)
-        pg.draw.rect(self.image, border_color, border_rect, 1)
 
     def take_damage(self, amount):
-        self.health -= amount
-        if self.health <= 0:
-            self.kill()
-            explosion = Explosion(self.rect.centerx, self.rect.centery)
-            return explosion
-        return None
+        self.health = -amount
+        bar_length = self.image.get_width()
+        bar_height = 5
+        pg.draw.rect(self.image, GREEN, (0, 0, bar_length, bar_height))
+        pg.draw.rect(self.image, RED, (0, 0, bar_length * (self.health - amount), bar_height))
+
+        return self.health <= 0
+
+    def destroy(self):
+        explosion = Explosion(self.rect.centerx, self.rect.centery)
+        return explosion
 
 
 class RenderSpaceShipShells(pg.sprite.Group):
@@ -104,7 +98,7 @@ class Enemy(pg.sprite.Sprite):
         explosion = Explosion(self.rect.centerx, self.rect.centery)
         return explosion
 
-    """
+
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
@@ -112,7 +106,7 @@ class Enemy(pg.sprite.Sprite):
             self.kill()
             return explosion
         return None
-    """
+
 
     def shoot(self):
         now = pg.time.get_ticks()
@@ -239,23 +233,23 @@ class Bullet(pg.sprite.Sprite):
     def __init__(self, x, y, speed_y, owner):
         super().__init__()
         self.image = pg.Surface((5, 10))
-        self.image.fill((255, 0, 0))
+        self.image.fill((255, 0, 0))  # Red color for the bullet
         self.rect = self.image.get_rect(center=(x, y))
         self.speed_y = speed_y
         self.owner = owner
 
     def update(self):
         self.rect.y += self.speed_y
-        if self.rect.bottom < 0 or self.rect.top > 600:  # Assuming screen height is 600
+        if self.rect.bottom < 0 or self.rect.top > pg.display.get_surface().get_height():
             self.kill()
 
-    def check_collision(self, enemy_group, target_group):
-        hits = pg.sprite.spritecollide(self, enemy_group, target_group, False)
+
+    def check_collision(self, target_group):
+        hits = pg.sprite.spritecollide(self, target_group, False)
         for hit in hits:
-            explosion = hit.take_damage(10)  # Reduce health by 10
-            self.kill()
             if hit != self.owner:
-                hit.take_damage(10)  # Reduce health by 10
+                explosion = hit.take_damage(10)  # Reduce health by 10
                 self.kill()
-                return
-            return explosion
+                if explosion:
+                    return explosion
+        return None
