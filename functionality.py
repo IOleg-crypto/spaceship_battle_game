@@ -35,6 +35,7 @@ class RenderSpaceShip(pg.sprite.Sprite):
         self.rect.x += x
         self.rect.y += y
         self.detect_screen_bounds()
+
     def detect_screen_bounds(self):
         if self.rect.right > pg.display.get_surface().get_width():
             self.rect.left = 0
@@ -56,7 +57,6 @@ class RenderSpaceShip(pg.sprite.Sprite):
         pg.draw.rect(self.image, GREEN, (0, 0, bar_length, bar_height))
         pg.draw.rect(self.image, RED, (0, 0, bar_length * health_percentage, bar_height))
         return self.health
-
 
     def destroy(self):
         explosion = Explosion(self.rect.centerx, self.rect.centery)
@@ -100,7 +100,6 @@ class Enemy(pg.sprite.Sprite):
         explosion = Explosion(self.rect.centerx, self.rect.centery)
         return explosion
 
-
     def take_damage(self, amount):
         self.health -= amount
         if self.health <= 0:
@@ -108,7 +107,6 @@ class Enemy(pg.sprite.Sprite):
             self.kill()
             return explosion
         return None
-
 
     def shoot(self):
         now = pg.time.get_ticks()
@@ -244,7 +242,6 @@ class Bullet(pg.sprite.Sprite):
         self.rect.y += self.speed_y
         if self.rect.bottom < 0 or self.rect.top > pg.display.get_surface().get_height():
             self.kill()
-
 
     def check_collision(self, target_group):
         hits = pg.sprite.spritecollide(self, target_group, False)
