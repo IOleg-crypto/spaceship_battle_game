@@ -108,8 +108,9 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
 
         for bullet in enemy_shells:
             if pg.sprite.spritecollideany(render, enemy_shells):  # Check collision with player's spaceship
-                if render.take_damage(10) <= 0:  # Adjust damage as needed
+                if render.take_damage(5) <= 0:  # Adjust damage as needed
                     game_finish = False
+                    game_lose = True
                     text_game_over = pg.font.Font("font/Pacifico.ttf", 36).render("Game Over! Press 1 to exit",
                                                                                   True, RED)
                     text_game_over_rect = text_game_over.get_rect()
@@ -119,7 +120,8 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                     if keys[pg.K_1]:
                         running_program = False
                         main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
-                                                lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy,
+                                                lambda: game_loop(screen, clock, render, all_sprites, shells,
+                                                                  load_enemy,
                                                                   enemy_sprite, enemy_image_path, alien_image_path,
                                                                   num_enemies, explosion_group, enemies, spaceship))
                         main_menu.draw_menu()
@@ -192,8 +194,28 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                     all_sprites.add(explosion)
                 score += 1
 
+        if len(enemy_sprite) == 0:
+            game_finish = False
+            text_finish = font.render("You won! Press 1 to exit", True, WHITE)
+            text_game_over = font.render("", True, WHITE)  # to prevent over the text
+            text_finish_rect = text_finish.get_rect()
+            text_finish_rect.center = screen.get_rect().center
+            screen.blit(text_finish, text_finish_rect)
+            text_game_over_rect = text_game_over.get_rect()
+            text_game_over_rect.center = screen.get_rect().center
+            screen.blit(text_game_over, text_game_over_rect)
+            pg.mixer.music.stop()
+            pg.mixer.Sound("sound/victory/victory.mp3").play(0, 0, 0)
+            if keys[pg.K_1]:
+                running_program = False
+                main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
+                                        lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy,
+                                                          enemy_sprite, enemy_image_path, alien_image_path,
+                                                          num_enemies, enemies, num_enemies))
+                main_menu.draw_menu()
+
         # Game over condition
-        if not game_finish:
+        if render.health <= 0:
             text_game_over = font.render("Game Over! Press 1 to exit", True, RED)
             text_game_over_rect = text_game_over.get_rect()
             text_game_over_rect.center = screen.get_rect().center
@@ -207,32 +229,12 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                                                           num_enemies, explosion_group, enemies, spaceship))
                 main_menu.draw_menu()
 
-        if len(enemy_sprite) == 0:
-            game_finish = False
-            text_finish = font.render("You won! Press 1 to exit", True, WHITE)
-            text_finish_rect = text_finish.get_rect()
-            text_finish_rect.center = screen.get_rect().center
-            screen.blit(text_finish, text_finish_rect)
-
-            pg.mixer.music.stop()
-            pg.mixer.Sound("sound/victory/victory.mp3").play(0, 0, 0)
-            if keys[pg.K_1]:
-                running_program = False
-                main_menu = ra.MainMenu(screen.get_width(), screen.get_height(), "Spaceship Battle", screen,
-                                        lambda: game_loop(screen, clock, render, all_sprites, shells, load_enemy,
-                                                          enemy_sprite, enemy_image_path, alien_image_path,
-                                                          num_enemies, enemies, num_enemies))
-                main_menu.draw_menu()
-
         pg.display.update()
         explosion_group.update()
         pg.display.flip()
         clock.tick(60)
 
     pg.quit()
-
-
-
 
 
 if __name__ == "__main__":
