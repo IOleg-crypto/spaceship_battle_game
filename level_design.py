@@ -136,68 +136,6 @@ class MovingBackground:
         self.screen.blit(self.bg_image, (0, self.bg_y - self.screen.get_height()))
 
 
-class MainMenu:
-    def __init__(self, width, height, title, screen, start_game_callback):
-        self.title = title
-        self.width = width
-        self.height = height
-        self.screen = screen
-        self.start_game_callback = start_game_callback
-        self.bg = MovingBackground(screen, os.path.join("assets/background", "background.jpg"), 2)
-
-        self.custom_theme = pm.themes.THEME_DARK.copy()
-        self.custom_theme.background_color = pm.baseimage.BaseImage(
-            image_path=os.path.join("assets/background", "background.jpg"),
-            drawing_mode=pm.baseimage.IMAGE_MODE_FILL
-        )
-
-    def draw_menu(self):
-
-        pg.mixer.init()
-
-        if not sound_muted:
-            # Load and play the music
-            pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
-            pg.mixer.music.play(-1)  # Play the music in a loop
-
-        main_menu = pm.Menu(title=self.title,
-                            width=self.width,
-                            height=self.height,
-                            theme=self.custom_theme)
-
-        settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
-
-        settings_menu.add.selector('Mute menu music :', [('Off', False), ('On', True)], onchange=self.set_sound_muted)
-        settings_menu.add.button('Back', pm.events.BACK)
-
-        main_menu.add.button('Play', self.start_game)
-        main_menu.add.button('Settings', settings_menu)
-        main_menu.add.button('Exit', pm.events.EXIT, font_color=WHITE, background_color=RED)
-
-        main_menu.mainloop(self.screen)
-
-        while True:
-            events = pg.event.get()
-            for event in events:
-                if event.type == pg.QUIT:
-                    pg.quit()
-                    exit()
-
-            self.bg.update()
-            self.bg.draw()
-            main_menu.update(events)
-            main_menu.draw(self.screen)
-            pg.display.flip()
-
-    def start_game(self):
-        self.screen.fill((0, 0, 0))
-        pg.display.update()
-        self.start_game_callback()
-
-    def set_sound_muted(self, value, mute):
-        global sound_muted
-        pg.mixer.music.set_volume(1 if not mute else 0)
-        sound_muted = mute
 
 
 class Explosion(pg.sprite.Sprite):
