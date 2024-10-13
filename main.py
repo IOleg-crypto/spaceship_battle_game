@@ -21,7 +21,9 @@ def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
 
 
 def main():
-    num_enemies = random.randint(5, 15)
+    # defined 0
+    num_enemies = 0
+
     pg.init()
     pg.mixer.init()
 

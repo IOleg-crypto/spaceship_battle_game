@@ -15,6 +15,8 @@ MAGENTA = (255, 0, 255)
 ORANGE = (255, 165, 0)
 PURPLE = (128, 0, 128)
 
+# Initialize sound_muted as a global variable
+sound_muted = False
 
 class MainMenu:
     def __init__(self, width, height, title, screen, start_game_callback):
@@ -23,11 +25,7 @@ class MainMenu:
         self.height = height
         self.screen = screen
         self.start_game_callback = start_game_callback
-        self.difficulty = "Normal"
         self.bg = ld.MovingBackground(screen, os.path.join("assets/background", "background.jpg"), 2)
-
-        # Initialize sound_muted as an instance variable
-        self.sound_muted = False
 
         self.custom_theme = pm.themes.THEME_DARK.copy()
         self.custom_theme.background_color = pm.baseimage.BaseImage(
@@ -35,28 +33,27 @@ class MainMenu:
             drawing_mode=pm.baseimage.IMAGE_MODE_FILL
         )
 
-    def set_difficulty(self, value, difficulty):
-        self.difficulty = difficulty  # Store the selected difficulty
-        print(f"Difficulty set to: {self.difficulty}")  # For debugging
+    def spawn_enemies(self):
+        pass
 
     def draw_menu(self):
         pg.mixer.init()
 
-        if not self.sound_muted:
+        global sound_muted
+
+        if not sound_muted:
             # Load and play the music
             pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
             pg.mixer.music.play(-1)  # Play the music in a loop
 
         main_menu = pm.Menu(title=self.title,
-                            width=self.width,
-                            height=self.height,
-                            theme=self.custom_theme)
+                             width=self.width,
+                             height=self.height,
+                             theme=self.custom_theme)
 
         settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
 
         settings_menu.add.selector('Mute menu music :', [('Off', False), ('On', True)], onchange=self.set_sound_muted)
-        settings_menu.add.selector('Select difficulty:', [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')],
-                                     onchange=self.set_difficulty)
         settings_menu.add.button('Back', pm.events.BACK)
 
         # Add Play and Exit buttons to the main menu
@@ -85,6 +82,6 @@ class MainMenu:
         self.start_game_callback()
 
     def set_sound_muted(self, value, mute):
-        # Update the sound_muted instance variable
-        self.sound_muted = mute
+        global sound_muted  # Declare sound_muted as global
+        sound_muted = mute
         pg.mixer.music.set_volume(1 if not mute else 0)
