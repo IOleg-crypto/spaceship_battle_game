@@ -24,6 +24,7 @@ class MainMenu:
         self.width = width
         self.height = height
         self.screen = screen
+        self.difficulty = "Normal"
         self.start_game_callback = start_game_callback
         self.bg = ld.MovingBackground(screen, os.path.join("assets/background", "background.jpg"), 2)
 
@@ -33,8 +34,9 @@ class MainMenu:
             drawing_mode=pm.baseimage.IMAGE_MODE_FILL
         )
 
-    def spawn_enemies(self):
-        pass
+    def set_difficulty(self, value,  difficulty):
+        self.difficulty = difficulty
+        print(f"Difficulty set to: {self.difficulty}")
 
     def draw_menu(self):
         pg.mixer.init()
@@ -54,6 +56,8 @@ class MainMenu:
         settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
 
         settings_menu.add.selector('Mute menu music :', [('Off', False), ('On', True)], onchange=self.set_sound_muted)
+        settings_menu.add.selector('Select difficulty:', [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')],
+                                   onchange=self.set_difficulty)
         settings_menu.add.button('Back', pm.events.BACK)
 
         # Add Play and Exit buttons to the main menu

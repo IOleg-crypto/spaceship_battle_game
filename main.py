@@ -13,16 +13,21 @@ screen_width, screen_height = 800, 600
 
 
 def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
-    enemies = [
-        ld.Enemy(screen, random.choice([enemy_image_path, alien_image_path]))
-        for _ in range(num_enemies)
-    ]
+    images = [enemy_image_path, alien_image_path]
+    enemies = [ld.Enemy(screen, random.choice(images)) for _ in range(num_enemies)]
     return enemies
 
 
 def main():
     # defined 0
     num_enemies = 0
+
+    if interface.MainMenu.set_difficulty == "Hard":
+        num_enemies = random.randint(15, 20)
+    elif interface.MainMenu.set_difficulty == "Normal":
+        num_enemies = random.randint(5, 10)
+    else:
+        num_enemies = random.randint(1, 5)
 
     pg.init()
     pg.mixer.init()
