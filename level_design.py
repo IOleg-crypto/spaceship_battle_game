@@ -1,5 +1,4 @@
 import pygame as pg
-import pygame_menu as pm
 import random
 import os
 
@@ -7,9 +6,6 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
-
-
-
 
 
 class AmmoAbility(pg.sprite.Sprite):
@@ -55,8 +51,8 @@ class RenderSpaceShip(pg.sprite.Sprite):
         bar_length = self.image.get_width()
         bar_height = 5
         health_percentage = self.health / 100
-        pg.draw.rect(self.image, GREEN, (0, 0, bar_length, bar_height))
-        pg.draw.rect(self.image, RED, (0, 0, bar_length * health_percentage, bar_height))
+        pg.draw.rect(self.image, RED, (0, 0, bar_length, bar_height))
+        pg.draw.rect(self.image, GREEN, (0, 0, bar_length * health_percentage, bar_height))
         return self.health
 
     def destroy(self):
@@ -70,7 +66,7 @@ class RenderSpaceShipShells(pg.sprite.Group):
         self.sprite_shell = sprite_shell
 
     def shoot_shell(self, pos):
-        shell = AmmoAbility(pos, self.sprite_shell, speed=10)
+        shell = AmmoAbility(pos, self.sprite_shell, speed=5)
         self.add(shell)
 
 
@@ -83,8 +79,8 @@ class Enemy(pg.sprite.Sprite):
         self.image = pg.transform.scale(self.image, (self.image.get_width() // 10, self.image.get_height() // 10))
         self.rect = self.image.get_rect(
             center=(int(random.randint(5, 400)), int(random.randint(6, 400))))
-        self.speed = [2, 0]  # Move horizontally with a speed of 2
-        self.shoot_delay = 1500  # milliseconds
+        self.speed = [3, 0]  # Move horizontally with a speed of 2
+        self.shoot_delay = 2000  # milliseconds
         self.last_shot = pg.time.get_ticks()
         self.health = 200
 
@@ -113,7 +109,7 @@ class Enemy(pg.sprite.Sprite):
         now = pg.time.get_ticks()
         if now - self.last_shot > self.shoot_delay:
             self.last_shot = now
-            bullet = Bullet(self.rect.centerx, self.rect.bottom, 1, self)  # Speed 5 downwards
+            bullet = Bullet(self.rect.centerx, self.rect.bottom, 2, self)  # Speed 5 downwards
             return bullet
         return None
 
@@ -135,8 +131,6 @@ class MovingBackground:
     def draw(self):
         self.screen.blit(self.bg_image, (0, self.bg_y))
         self.screen.blit(self.bg_image, (0, self.bg_y - self.screen.get_height()))
-
-
 
 
 class Explosion(pg.sprite.Sprite):

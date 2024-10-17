@@ -1,15 +1,19 @@
-import pygame as pg
 import os
+import random
+
+import pygame as pg
+
 import level_design as ld
 import menu_interface as interface
-import random
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
-
-screen_width, screen_height = 800, 600
+'''''''''''''''''''''''
+    Screen Resolution
+'''''''''''''''''''''''
+screen_width, screen_height = 1280, 720
 
 
 def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
@@ -19,15 +23,15 @@ def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
 
 
 def main():
-    # defined 0
+    # defined enemies to 0(not spawn)
     num_enemies = 0
 
     if interface.MainMenu.set_difficulty == "Hard":
-        num_enemies = random.randint(15, 20)
+        num_enemies = 25
     elif interface.MainMenu.set_difficulty == "Normal":
-        num_enemies = random.randint(5, 10)
+        num_enemies = 15
     else:
-        num_enemies = random.randint(1, 5)
+        num_enemies = 10
 
     pg.init()
     pg.mixer.init()
@@ -102,6 +106,7 @@ def game_loop(
         enemies,
         spaceship,
 ):
+    key_delay = 1500  # fix spawn bullets spam
     running_program = True
     game_finish = True
     show_debug_text = True
@@ -172,7 +177,7 @@ def game_loop(
             if pg.sprite.spritecollideany(
                     render, enemy_shells
             ):  # Check collision with player's spaceship
-                if render.take_damage(5) <= 0:  # Adjust damage as needed
+                if render.take_damage(3) <= 0:  # Adjust damage as needed
                     game_finish = False
                     game_lose = True
                     text_game_over = pg.font.Font("font/Pacifico.ttf", 36).render(
@@ -208,6 +213,8 @@ def game_loop(
                         main_menu.draw_menu()
                 bullet.kill()  # Remove bullet after collision
 
+        last_shot_time = 0
+        current_time = pg.time.get_ticks()
         keys = pg.key.get_pressed()
         if game_finish:
             if keys[pg.K_LEFT]:
@@ -229,8 +236,11 @@ def game_loop(
             if keys[pg.K_x]:
                 show_debug_text = not show_debug_text
             if keys[pg.K_SPACE]:
+                # Check if enough time has passed since the last shot
+                if current_time - last_shot_time > key_delay:
+                    last_shot_time = current_time  # Update last shot time
                 shells.shoot_shell(render.rect.center)
-                if not interface.sound_muted:
+                if not interface.sound_muted or not pg.mixer.get_busy():
                     pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3").play(0, 0, 0)
                 count += 1
 
@@ -291,7 +301,7 @@ def game_loop(
             text_game_over_rect.center = screen.get_rect().center
             screen.blit(text_game_over, text_game_over_rect)
             pg.mixer.music.stop()
-            pg.mixer.Sound("sound/victory/victory.mp3").play(0, 0, 0)
+            pg.mixer.Sound("sound/victory/victory.mp3").play(0, 5, 0)
             if keys[pg.K_1]:
                 running_program = False
                 main_menu = interface.MainMenu(
