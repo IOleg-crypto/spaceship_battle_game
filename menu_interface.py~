@@ -110,4 +110,4 @@ class MainMenu:
     def set_sound_muted(self, value, mute):
         global sound_muted  # Declare sound_muted as global
         sound_muted = mute
-        pg.mixer.music.set_volume(config.getboolean("sound", "muted") or sound_muted)
+        pg.mixer.music.set_volume(config.getboolean("sound", "muted"))

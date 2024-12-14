@@ -3,6 +3,7 @@ import random
 
 import level_design as ld
 import configparser as cfgp
+import console as cls
 import menu_interface as interface
 from assets import *
 
@@ -108,14 +109,14 @@ def game_loop(
     show_debug_text = True
     count = 0
     score = 0
-
     render.health = 100
 
     load_enemy = ld.Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
 
-    loading_background = pg.image.load(
-        os.path.join("assets/background", "space_background.png")
-    )
+    console = cls.Console(config.getint("console", "width"), config.getint("console", "height"))
+
+
+
 
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group()
@@ -159,6 +160,14 @@ def game_loop(
                         ),
                     )
                     main_menu.draw_menu()
+                if event.key == pg.K_BACKQUOTE:
+                    console.toggle()
+
+
+        if console.is_open:
+            console.handle_event(event)
+
+
 
         keys = pg.key.get_pressed()
 
@@ -354,14 +363,16 @@ def game_loop(
                 )
                 main_menu.draw_menu()
 
+        console.draw(screen)
         pg.display.update()
         explosion_group.update()
         pg.display.flip()
         clock.tick(60)
 
+
     pg.quit()
 
 
 if __name__ == "__main__":
-    sound_muted = config.getboolean("sound", "muted")  # Set this based on user settings
+    sound_muted = False # Set this based on user settings
     main()
