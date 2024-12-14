@@ -1,7 +1,9 @@
 import pygame_menu as pm
-import pygame as pg
-import os
+import configparser as cfgp
 import level_design as ld
+import tkinter as tk
+from tkinter import filedialog
+from assets import *
 
 # Define color constants
 RED = (255, 0, 0)
@@ -17,6 +19,26 @@ PURPLE = (128, 0, 128)
 
 # Initialize sound_muted as a global variable
 sound_muted = False
+config = cfgp.ConfigParser()
+config.read()
+
+def open_filedialog(file_path : str):
+    # Initialize Tkinter and hide the root window
+    if file_path.isnumeric():
+        raise ValueError
+    else:
+        root = tk.Tk()
+        root.withdraw()
+
+        # Open the file dialog
+        file_path = filedialog.askopenfilename(
+            title="Choose spaceship",
+            filetypes=[("Image files(must be transparent)", "*.png")]
+        )
+
+        # Destroy the Tkinter instance
+        root.destroy()
+
 
 class MainMenu:
     def __init__(self, width, height, title, screen, start_game_callback):
@@ -59,6 +81,7 @@ class MainMenu:
         settings_menu.add.selector('Select difficulty:', [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')],
                                    onchange=self.set_difficulty)
         settings_menu.add.button('Back', pm.events.BACK)
+        settings_menu.add.button("Choose spaceship", open_filedialog(spaceship))
 
         # Add Play and Exit buttons to the main menu
         main_menu.add.button('Play', self.start_game)
@@ -88,4 +111,4 @@ class MainMenu:
     def set_sound_muted(self, value, mute):
         global sound_muted  # Declare sound_muted as global
         sound_muted = mute
-        pg.mixer.music.set_volume(1 if not mute else 0)
+        pg.mixer.music.set_volume(config.getboolean("sound", "volume"))

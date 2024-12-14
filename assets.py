@@ -1,6 +1,7 @@
 import pygame as pg
 import os
 
+"""Loaded assets for the game by default"""
 programIcon = pg.image.load(os.path.join("assets", "icon/icon.png"))
 spaceship = pg.image.load(os.path.join("assets/spaceships", "spaceship2d.png"))
 shell_spaceship = pg.image.load(os.path.join("assets/shells", "shell.png"))

@@ -1,11 +1,10 @@
 """main.py - main game functionality"""
 import random
 
-import pygame as pg
-from assets import *
-
 import level_design as ld
+import configparser as cfgp
 import menu_interface as interface
+from assets import *
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -14,7 +13,9 @@ GREEN = (0, 255, 0)
 '''''''''''''''''''''''
     Screen Resolution
 '''''''''''''''''''''''
-screen_width, screen_height = 1280, 720
+config = cfgp.ConfigParser()
+config.read("config/config.cfg")
+screen_width, screen_height = config.getint("window", "width"), config.getint("window", "height")
 
 
 def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
@@ -110,8 +111,8 @@ def game_loop(
 
     render.health = 100
 
-
     load_enemy = ld.Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
+
     loading_background = pg.image.load(
         os.path.join("assets/background", "space_background.png")
     )
@@ -141,7 +142,7 @@ def game_loop(
                         screen.get_height(),
                         "Spaceship Battle",
                         screen,
-                        lambda: game_loop(
+                        lambda: main(
                             screen,
                             clock,
                             render,
@@ -304,7 +305,7 @@ def game_loop(
                     screen.get_height(),
                     "Spaceship Battle",
                     screen,
-                    lambda: game_loop(
+                    lambda: main(
                         screen,
                         clock,
                         render,
@@ -335,7 +336,7 @@ def game_loop(
                     screen.get_height(),
                     "Spaceship Battle",
                     screen,
-                    lambda: game_loop(
+                    lambda: main(
                         screen,
                         clock,
                         render,
@@ -362,5 +363,5 @@ def game_loop(
 
 
 if __name__ == "__main__":
-    sound_muted = False  # Set this based on user settings
+    sound_muted = config.getboolean("sound", "muted")  # Set this based on user settings
     main()
