@@ -1,7 +1,8 @@
-import os
+"""main.py - main game functionality"""
 import random
 
 import pygame as pg
+from assets import *
 
 import level_design as ld
 import menu_interface as interface
@@ -39,15 +40,10 @@ def main():
     screen = pg.display.set_mode((screen_width, screen_height))
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
-    programIcon = pg.image.load("assets/icon/icon.png")
 
     pg.display.set_icon(programIcon)
 
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
-    spaceship = pg.image.load(os.path.join("assets/spaceships", "spaceship2d.png"))
-    shell_spaceship = pg.image.load(os.path.join("assets/shells", "shell.png"))
-    enemy_image_path = os.path.join("assets/spaceships", "spaceship2d_2.png")
-    alien_image_path = os.path.join("assets/invaders", "ufo.png")
 
     render = ld.RenderSpaceShip(spaceship_pos, spaceship)
     load_enemy = ld.Enemy(screen, enemy_image_path)
@@ -103,8 +99,7 @@ def game_loop(
         alien_image_path,
         num_enemies,
         explosion_group,
-        enemies,
-        spaceship,
+        enemies, spaceship,
 ):
     key_delay = 1500  # fix spawn bullets spam
     running_program = True
@@ -115,7 +110,7 @@ def game_loop(
 
     render.health = 100
 
-    enemy_image_path = os.path.join("assets/spaceships", "spaceship2d_2.png")
+
     load_enemy = ld.Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
     loading_background = pg.image.load(
         os.path.join("assets/background", "space_background.png")
