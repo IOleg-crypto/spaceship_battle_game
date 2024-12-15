@@ -21,7 +21,7 @@ sound_muted = False
 config = cfgp.ConfigParser()
 config.read("config/config.cfg")
 
-def open_filedialog(file_path):
+def open_filedialog(file_path) -> str:
     # Initialize Tkinter and hide the root window
     root = tk.Tk()
     root.withdraw()
@@ -31,20 +31,22 @@ def open_filedialog(file_path):
             title="Choose spaceship",
             filetypes=[("Image files(must be transparent)", "*.png")]
     )
-
-    # Destroy the Tkinter instance
     root.destroy()
+    # Destroy the Tkinter instance
     return file_path
 
 
+
+
 class MainMenu:
-    def __init__(self, width, height, title, screen, start_game_callback):
+    def __init__(self, width, height, title, screen, start_game_callback , fullscreen : bool):
         self.title = title
         self.width = width
         self.height = height
         self.screen = screen
         self.difficulty = "Normal"
         self.start_game_callback = start_game_callback
+        self.fullscreen = fullscreen
         self.bg = ld.MovingBackground(screen, os.path.join("assets/background", "background.jpg"), 2)
 
         self.custom_theme = pm.themes.THEME_DARK.copy()
@@ -75,9 +77,15 @@ class MainMenu:
         settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
 
         settings_menu.add.selector('Mute menu music :', [('Off', False), ('On', True)], onchange=self.set_sound_muted)
+        settings_menu.add.selector(
+            'Fullscreen: ',
+            [('Off', False), ('On', True)],
+            onchange=self.set_fullscreen
+        )
         settings_menu.add.selector('Select difficulty:', [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')],
                                    onchange=self.set_difficulty)
-        settings_menu.add.button("Choose spaceship", lambda : open_filedialog(spaceship))
+        settings_menu.add.button("Choose spaceship", lambda: open_filedialog(spaceship))
+
 
         settings_menu.add.button('Back', pm.events.BACK)
 
@@ -111,3 +119,13 @@ class MainMenu:
         global sound_muted  # Declare sound_muted as global
         sound_muted = mute
         pg.mixer.music.set_volume(config.getboolean("sound", "muted") or sound_muted)
+
+    def set_fullscreen(self, value, fullscreen, **kwargs):
+        self.fullscreen = fullscreen
+        if self.fullscreen:
+            pg.display.set_mode((self.width, self.height), pg.FULLSCREEN)
+        else:
+            pg.display.set_mode((self.width, self.height))
+        print(f"Fullscreen mode is now {'enabled' if self.fullscreen else 'disabled'}.")
+
+

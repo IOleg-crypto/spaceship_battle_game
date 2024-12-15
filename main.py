@@ -11,13 +11,6 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
-'''''''''''''''''''''''
-    Screen Resolution
-'''''''''''''''''''''''
-config = cfgp.ConfigParser()
-config.read("config/config.cfg")
-screen_width, screen_height = config.getint("window", "width"), config.getint("window", "height")
-
 
 def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
     images = [enemy_image_path, alien_image_path]
@@ -26,15 +19,38 @@ def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
 
 
 def main():
+    config = cfgp.ConfigParser()
+    config.read("config/config.cfg")
+    fullscreen = config.getboolean("window" , "fullscreen")
+    '''''''''''''''''''''''
+        Screen Resolution
+    '''''''''''''''''''''''
+    screen_width, screen_height = config.getint("window", "width"), config.getint("window", "height")
     # defined enemies to 0(not spawn)
     num_enemies = 0
 
     if interface.MainMenu.set_difficulty == "Hard":
-        num_enemies = 25
+        if screen_width < 800 and screen_height < 600:
+            num_enemies = random.randint(6 , 16)
+        elif screen_width > 800 and screen_height > 600:
+            num_enemies = random.randint(7, 25)
+        if fullscreen:
+            num_enemies = random.randint(7, 30)
+
     elif interface.MainMenu.set_difficulty == "Normal":
-        num_enemies = 15
+        if screen_width < 800 and screen_height < 600:
+            num_enemies = random.randint(6 , 12)
+        elif screen_width > 800 and screen_height > 600:
+            num_enemies = random.randint(7, 19)
+        if fullscreen:
+            num_enemies = random.randint(7, 30)
     else:
-        num_enemies = 10
+        if screen_width < 800 and screen_height < 600:
+            num_enemies = random.randint(6, 10)
+        elif screen_width > 800 and screen_height > 600:
+            num_enemies = random.randint(7, 10)
+        if fullscreen:
+            num_enemies = random.randint(7, 10)
 
     pg.init()
     pg.mixer.init()
@@ -84,7 +100,11 @@ def main():
             explosion_group,
             enemies,
             spaceship,
+            config,
+            fullscreen
         ),
+        fullscreen
+
     )
     main_menu.draw_menu()
 
@@ -101,7 +121,7 @@ def game_loop(
         alien_image_path,
         num_enemies,
         explosion_group,
-        enemies, spaceship,
+        enemies, spaceship, config ,fullscreen
 ):
     key_delay = 1500  # fix spawn bullets spam
     running_program = True
@@ -157,15 +177,14 @@ def game_loop(
                             explosion_group,
                             enemies,
                             spaceship,
+                            config,
+                            fullscreen
                         ),
+                        fullscreen
                     )
                     main_menu.draw_menu()
-                if event.key == pg.K_BACKQUOTE:
-                    console.toggle()
 
 
-        if console.is_open:
-            console.handle_event(event)
 
 
 
@@ -248,6 +267,9 @@ def game_loop(
                 if not interface.sound_muted or not pg.mixer.get_busy():
                     pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3").play(0, 0, 0)
                 count += 1
+            if keys[pg.K_BACKQUOTE]:
+                console.toggle()
+
 
         all_sprites.update()
         shells.update()
@@ -283,6 +305,9 @@ def game_loop(
         enemy_sprite.draw(screen)
         shells.draw(screen)
         explosion_group.draw(screen)
+
+        if console.is_open:
+            console.handle_event(event)
 
         # Handle enemy destruction and spaceship health reduction
         for enemy in enemy_sprite:
