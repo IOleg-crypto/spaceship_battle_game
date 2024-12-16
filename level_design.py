@@ -76,11 +76,11 @@ class Enemy(pg.sprite.Sprite):
         super().__init__()
         self.screen = screen
         self.image = pg.image.load(image_path)
-        self.image = pg.transform.scale(self.image, (self.image.get_width() // 10, self.image.get_height() // 10))
+        self.image = pg.transform.scale(self.image, (self.image.get_width() // 12, self.image.get_height() // 12))
         self.rect = self.image.get_rect(
             center=(int(random.randint(5, 400)), int(random.randint(6, 400))))
         self.speed = [3, 0]  # Move horizontally with a speed of 2
-        self.shoot_delay = 2000  # milliseconds
+        self.shoot_delay = 3000  # milliseconds
         self.last_shot = pg.time.get_ticks()
         self.health = 200
 
@@ -90,7 +90,7 @@ class Enemy(pg.sprite.Sprite):
             self.detect_screen_bounds()
 
     def detect_screen_bounds(self):
-        if self.rect.x >= self.screen.get_width() - self.rect.width or self.rect.x <= 0:
+        if self.rect.x + 10 >= self.screen.get_width() - self.rect.width or self.rect.x <= 0:
             self.speed[0] = -self.speed[0]  # Reverse direction
 
     def destroy(self):
@@ -173,15 +173,16 @@ class Bullet(pg.sprite.Sprite):
 
     def update(self):
         self.rect.y += self.speed_y
-        if self.rect.bottom < 0 or self.rect.top > pg.display.get_surface().get_height():
+        if self.rect.bottom < 0 or self.rect.top + 100 > pg.display.get_surface().get_height():
             self.kill()
 
     def check_collision(self, target_group):
         hits = pg.sprite.spritecollide(self, target_group, False)
         for hit in hits:
             if hit != self.owner:
-                explosion = hit.take_damage(10)  # Reduce health by 10
+                explosion = hit.take_damage(5)  # Reduce health by 10
                 self.kill()
                 if explosion:
                     return explosion
         return None
+
