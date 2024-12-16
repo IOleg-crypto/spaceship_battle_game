@@ -3,7 +3,7 @@ import random
 
 import level_design as ld
 import configparser as cfgp
-import console as cls
+#import console as cls """don`t work"""
 import menu_interface as interface
 from assets import *
 
@@ -133,7 +133,8 @@ def game_loop(
 
     load_enemy = ld.Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
 
-    console = cls.Console(config.getint("console", "width"), config.getint("console", "height"))
+
+    #console = cls.Console(config.getint("console", "width"), config.getint("console", "height"))
 
 
 
@@ -267,8 +268,8 @@ def game_loop(
                 if not interface.sound_muted or not pg.mixer.get_busy():
                     pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3").play(0, 0, 0)
                 count += 1
-            if keys[pg.K_BACKQUOTE]:
-                console.toggle()
+
+
 
 
         all_sprites.update()
@@ -306,8 +307,10 @@ def game_loop(
         shells.draw(screen)
         explosion_group.draw(screen)
 
+        """Disabled not working
         if console.is_open:
             console.handle_event(event)
+        """
 
         # Handle enemy destruction and spaceship health reduction
         for enemy in enemy_sprite:
@@ -388,7 +391,9 @@ def game_loop(
                 )
                 main_menu.draw_menu()
 
-        console.draw(screen)
+        """disable draw
+        #console.draw(screen)
+        """
         pg.display.update()
         explosion_group.update()
         pg.display.flip()

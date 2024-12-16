@@ -15,6 +15,7 @@ config = cfgp.ConfigParser()
 config.read("config/config.cfg")
 
 class Console:
+    """""
     def __init__(self, width, height):
         self.width = width
         self.height = height
@@ -24,17 +25,17 @@ class Console:
         self.max_lines = 10  # Max number of visible lines
 
     def toggle(self):
-        """Toggle console visibility."""
+        Toggle console visibility.
         self.is_open = not self.is_open
 
     def add_line(self, text):
-        """Add a line to the console output."""
+        Add a line to the console output.
         self.lines.append(text)
         if len(self.lines) > self.max_lines:
             self.lines.pop(0)
 
     def handle_event(self, event):
-        """Handle keyboard input for the console."""
+        Handle keyboard input for the console.
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_BACKSPACE:
                 self.input_text = self.input_text[:-1]
@@ -47,7 +48,7 @@ class Console:
                 self.input_text += event.unicode
 
     def execute_command(self, command):
-        """Execute a console command."""
+        Execute a console command.
         if command == "clear":
             self.lines = []
         elif command.startswith("echo "):
@@ -56,7 +57,7 @@ class Console:
             self.add_line(f"Unknown command: {command}")
 
     def draw(self, surface):
-        """Render the console on the screen."""
+        Render the console on the screen.
         if not self.is_open:
             return
 
@@ -74,3 +75,4 @@ class Console:
         # Draw input text
         input_surface = FONT.render(f"> {self.input_text}", True, WHITE)
         surface.blit(input_surface, (5, y_offset))
+    """""""""""
