@@ -38,7 +38,7 @@
 - Spacebar: shoot projectiles
 
 ## File Configuration
-
+![img.png](img.png)
 
 ## Additional Information
 - The code is open for contributions and modifications. Feel free to explore the code, add new features, fix bugs, or enhance the game in any way you see fit. If you have any questions or need assistance, please open an issue in the repository or submit a pull request with your improvements. Enjoy the game and happy coding!
