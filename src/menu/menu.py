@@ -1,9 +1,14 @@
 import pygame_menu as pm
-import configparser as cfgp
-import level_design as ld
+import configparser as cfg
+
 import tkinter as tk
 from tkinter import filedialog
-from assets import *
+
+from src.main import MovingBackground
+
+"""materials"""
+import src.gunfire_and_blasts as wae
+from src.materials.assets import *
 
 # Define color constants
 RED = (255, 0, 0)
@@ -18,28 +23,27 @@ ORANGE = (255, 165, 0)
 PURPLE = (128, 0, 128)
 
 sound_muted = False
-config = cfgp.ConfigParser()
+config = cfg.ConfigParser()
 config.read("config/config.cfg")
 
-def open_filedialog(file_path) -> str:
+
+def open_filedialog(file_path: str) -> str:
     # Initialize Tkinter and hide the root window
     root = tk.Tk()
     root.withdraw()
 
     # Open the file dialog
     file_path = filedialog.askopenfilename(
-            title="Choose spaceship",
-            filetypes=[("Image files(must be transparent)", "*.png")]
+        title="Choose entities",
+        filetypes=[("Image files(must be transparent)", "*.png")]
     )
     root.destroy()
     # Destroy the Tkinter instance
     return file_path
 
 
-
-
 class MainMenu:
-    def __init__(self, width, height, title, screen, start_game_callback , fullscreen : bool):
+    def __init__(self, width, height, title, screen, start_game_callback, fullscreen: bool):
         self.title = title
         self.width = width
         self.height = height
@@ -47,7 +51,7 @@ class MainMenu:
         self.difficulty = "Normal"
         self.start_game_callback = start_game_callback
         self.fullscreen = fullscreen
-        self.bg = ld.MovingBackground(screen, os.path.join("assets/background", "background.jpg"), 2)
+        self.bg = MovingBackground(screen, os.path.join("assets/background", "background.jpg"), 2)
 
         self.custom_theme = pm.themes.THEME_DARK.copy()
         self.custom_theme.background_color = pm.baseimage.BaseImage(
@@ -55,7 +59,7 @@ class MainMenu:
             drawing_mode=pm.baseimage.IMAGE_MODE_FILL
         )
 
-    def set_difficulty(self, value,  difficulty):
+    def set_difficulty(self, value, difficulty):
         self.difficulty = difficulty
         print(f"Difficulty set to: {self.difficulty}")
 
@@ -70,9 +74,9 @@ class MainMenu:
             pg.mixer.music.play(-1)  # Play the music in a loop
 
         main_menu = pm.Menu(title=self.title,
-                             width=self.width,
-                             height=self.height,
-                             theme=self.custom_theme)
+                            width=self.width,
+                            height=self.height,
+                            theme=self.custom_theme)
 
         settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
 
@@ -84,11 +88,9 @@ class MainMenu:
         )
         settings_menu.add.selector('Select difficulty:', [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')],
                                    onchange=self.set_difficulty)
-        settings_menu.add.button("Choose spaceship", lambda: open_filedialog(spaceship))
-
+        settings_menu.add.button("Choose entities", lambda: open_filedialog(spaceship))
 
         settings_menu.add.button('Back', pm.events.BACK)
-
 
         # Add Play and Exit buttons to the main menu
         main_menu.add.button('Play', self.start_game)
@@ -127,5 +129,3 @@ class MainMenu:
         else:
             pg.display.set_mode((self.width, self.height))
         print(f"Fullscreen mode is now {'enabled' if self.fullscreen else 'disabled'}.")
-
-

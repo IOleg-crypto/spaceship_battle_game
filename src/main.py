@@ -1,27 +1,52 @@
 """main.py - main game functionality"""
+
+import configparser as cfg
+from src.menu.menu import *
+from src.materials.assets import *
+from src.entities.spaceship import *
+from src.entities.enemy import *
+
 import random
 
-import level_design as ld
-import configparser as cfgp
-#import console as cls """don`t work"""
-import menu_interface as interface
-from assets import *
+
+class MovingBackground:
+    def __init__(self, screen, image_path, speed):
+        self.screen = screen
+        self.bg_image = pg.image.load(image_path)
+        self.bg_image = pg.transform.scale(self.bg_image, (screen.get_width(), screen.get_height()))
+        self.bg_y = 0
+        self.speed = speed
+
+    def update(self):
+        self.bg_y += self.speed
+        if self.bg_y >= self.screen.get_height():
+            self.bg_y = 0
+
+    def draw(self):
+        self.screen.blit(self.bg_image, (0, self.bg_y))
+        self.screen.blit(self.bg_image, (0, self.bg_y - self.screen.get_height()))
+
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 
+"""Config read"""
+config = cfg.ConfigParser()
+
+
+
 def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
     images = [enemy_image_path, alien_image_path]
-    enemies = [ld.Enemy(screen, random.choice(images)) for _ in range(num_enemies)]
+    enemies = [Enemy(screen, random.choice(images)) for _ in range(num_enemies)]
     return enemies
 
 
 def main():
-    config = cfgp.ConfigParser()
+    config = cfg.ConfigParser()
     config.read("config/config.cfg")
-    fullscreen = config.getboolean("window" , "fullscreen")
+    fullscreen = config.getboolean("window", "fullscreen")
     '''''''''''''''''''''''
         Screen Resolution
     '''''''''''''''''''''''
@@ -29,28 +54,13 @@ def main():
     # defined enemies to 0(not spawn)
     num_enemies = 0
 
-    if interface.MainMenu.set_difficulty == "Hard":
-        if screen_width < 800 and screen_height < 600:
-            num_enemies = random.randint(6 , 16)
-        elif screen_width > 800 and screen_height > 600:
-            num_enemies = random.randint(7, 25)
-        if fullscreen:
-            num_enemies = random.randint(7, 30)
+    if MainMenu.set_difficulty == "Hard":
+        num_enemies = random.randint(7, 30)
 
-    elif interface.MainMenu.set_difficulty == "Normal":
-        if screen_width < 800 and screen_height < 600:
-            num_enemies = random.randint(6 , 12)
-        elif screen_width > 800 and screen_height > 600:
-            num_enemies = random.randint(7, 19)
-        if fullscreen:
-            num_enemies = random.randint(7, 30)
+    elif MainMenu.set_difficulty == "Normal":
+        num_enemies = random.randint(6, 35)
     else:
-        if screen_width < 800 and screen_height < 600:
-            num_enemies = random.randint(6, 10)
-        elif screen_width > 800 and screen_height > 600:
-            num_enemies = random.randint(7, 10)
-        if fullscreen:
-            num_enemies = random.randint(7, 10)
+        num_enemies = random.randint(5, 40)
 
     pg.init()
     pg.mixer.init()
@@ -63,25 +73,25 @@ def main():
 
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
 
-    render = ld.RenderSpaceShip(spaceship_pos, spaceship)
-    load_enemy = ld.Enemy(screen, enemy_image_path)
+    render = RenderSpaceShip(spaceship_pos, spaceship)
+    load_enemy = Enemy(screen, enemy_image_path)
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group(load_enemy)
-    shells = ld.RenderSpaceShipShells(shell_spaceship)
+    shells = RenderSpaceShipShells(shell_spaceship)
 
     explosion_group = pg.sprite.Group()
 
     # Create multiple enemies
     # Number of enemies to create
     enemies = [
-        ld.Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
+        Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
         for _ in range(num_enemies)
     ]
     for enemy in enemies:
         enemy_sprite.add(enemy)
         all_sprites.add(enemy)
 
-    main_menu = interface.MainMenu(
+    main_menu = MainMenu(
         screen_width,
         screen_height,
         "Spaceship Battle",
@@ -121,7 +131,7 @@ def game_loop(
         alien_image_path,
         num_enemies,
         explosion_group,
-        enemies, spaceship, config ,fullscreen
+        enemies, spaceship, config, fullscreen
 ):
     key_delay = 1500  # fix spawn bullets spam
     running_program = True
@@ -131,14 +141,7 @@ def game_loop(
     score = 0
     render.health = 100
 
-    load_enemy = ld.Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
-
-
-    #console = cls.Console(config.getint("console", "width"), config.getint("console", "height"))
-
-
-
-
+    load_enemy = Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group()
     shells_enemy_sprite = pg.sprite.Group()
@@ -159,35 +162,15 @@ def game_loop(
                 running_program = False
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_1:
-                    main_menu = interface.MainMenu(
+                    main_menu = MainMenu(
                         screen.get_width(),
                         screen.get_height(),
                         "Spaceship Battle",
                         screen,
-                        lambda: main(
-                            screen,
-                            clock,
-                            render,
-                            all_sprites,
-                            shells,
-                            main_menu,
-                            enemy_sprite,
-                            enemy_image_path,
-                            alien_image_path,
-                            num_enemies,
-                            explosion_group,
-                            enemies,
-                            spaceship,
-                            config,
-                            fullscreen
-                        ),
+                        lambda: main(),
                         fullscreen
                     )
                     main_menu.draw_menu()
-
-
-
-
 
         keys = pg.key.get_pressed()
 
@@ -214,7 +197,7 @@ def game_loop(
                     pg.mixer.music.stop()
                     if keys[pg.K_1]:
                         running_program = False
-                        main_menu = interface.MainMenu(
+                        main_menu = MainMenu(
                             screen.get_width(),
                             screen.get_height(),
                             "Spaceship Battle",
@@ -265,12 +248,9 @@ def game_loop(
                 if current_time - last_shot_time > key_delay:
                     last_shot_time = current_time  # Update last shot time
                 shells.shoot_shell(render.rect.center)
-                if not interface.sound_muted or not pg.mixer.get_busy():
+                if not sound_muted or not pg.mixer.get_busy():
                     pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3").play(0, 0, 0)
                 count += 1
-
-
-
 
         all_sprites.update()
         shells.update()
@@ -307,11 +287,6 @@ def game_loop(
         shells.draw(screen)
         explosion_group.draw(screen)
 
-        """Disabled not working
-        if console.is_open:
-            console.handle_event(event)
-        """
-
         # Handle enemy destruction and spaceship health reduction
         for enemy in enemy_sprite:
             if pg.sprite.groupcollide(
@@ -337,25 +312,12 @@ def game_loop(
             pg.mixer.Sound("sound/victory/victory.mp3").play(0, 5, 0)
             if keys[pg.K_1]:
                 running_program = False
-                main_menu = interface.MainMenu(
+                main_menu = MainMenu(
                     screen.get_width(),
                     screen.get_height(),
                     "Spaceship Battle",
                     screen,
-                    lambda: main(
-                        screen,
-                        clock,
-                        render,
-                        all_sprites,
-                        shells,
-                        load_enemy,
-                        enemy_sprite,
-                        enemy_image_path,
-                        alien_image_path,
-                        num_enemies,
-                        enemies,
-                        num_enemies,
-                    ),
+                    lambda: main(),
                 )
                 main_menu.draw_menu()
 
@@ -368,41 +330,24 @@ def game_loop(
             pg.mixer.music.stop()
             if keys[pg.K_1]:
                 running_program = False
-                main_menu = interface.MainMenu(
+                main_menu = MainMenu(
                     screen.get_width(),
                     screen.get_height(),
                     "Spaceship Battle",
                     screen,
-                    lambda: main(
-                        screen,
-                        clock,
-                        render,
-                        all_sprites,
-                        shells,
-                        load_enemy,
-                        enemy_sprite,
-                        enemy_image_path,
-                        alien_image_path,
-                        num_enemies,
-                        explosion_group,
-                        enemies,
-                        spaceship,
-                    ),
+                    lambda: main(),
+                    fullscreen
                 )
                 main_menu.draw_menu()
 
-        """disable draw
-        #console.draw(screen)
-        """
         pg.display.update()
         explosion_group.update()
         pg.display.flip()
         clock.tick(60)
 
-
     pg.quit()
 
 
 if __name__ == "__main__":
-    sound_muted = False # Set this based on user settings
+    sound_muted = False  # Set this based on user settings
     main()

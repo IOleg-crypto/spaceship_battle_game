@@ -38,6 +38,7 @@
 - Spacebar: shoot projectiles
 
 ## File Configuration
+
 ![img.png](img.png)
 
 ## Additional Information
