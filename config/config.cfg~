@@ -6,7 +6,7 @@ height = 600
 fullscreen = False
 
 [sound]
-muted = True
+muted = False
 
 [console]
 width = 480

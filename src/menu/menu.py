@@ -1,13 +1,13 @@
 import pygame_menu as pm
 import configparser as cfg
-
+import threading
 import tkinter as tk
 from tkinter import filedialog
 
 from src.main import MovingBackground
+from src.console import Console
 
 """materials"""
-import src.gunfire_and_blasts as wae
 from src.materials.assets import *
 
 # Define color constants
@@ -26,21 +26,29 @@ sound_muted = False
 config = cfg.ConfigParser()
 config.read("config/config.cfg")
 
+console_open = False
 
 def open_filedialog(file_path: str) -> str:
-    # Initialize Tkinter and hide the root window
+    """Opens the file dialog for choosing an entity image."""
     root = tk.Tk()
     root.withdraw()
-
-    # Open the file dialog
     file_path = filedialog.askopenfilename(
         title="Choose entities",
         filetypes=[("Image files(must be transparent)", "*.png")]
     )
     root.destroy()
-    # Destroy the Tkinter instance
     return file_path
 
+
+def start_console(sound_muted: bool):
+    global console_open
+    if console_open:
+        return
+    else:
+        console_open = True  # Mark the console as open
+        root = tk.Tk()  # Create a new tkinter window
+        console = Console(sound_muted)  # Pass the root and sound_muted value to the Console class
+        root.mainloop()  # Start the tkinter main event loop
 
 class MainMenu:
     def __init__(self, width, height, title, screen, start_game_callback, fullscreen: bool):
@@ -64,14 +72,12 @@ class MainMenu:
         print(f"Difficulty set to: {self.difficulty}")
 
     def draw_menu(self):
+        """Draws the menu and listens for events, including F12 for console toggle."""
         pg.mixer.init()
 
         sound_muted = config.getboolean("sound", "muted")
 
-        if not sound_muted:
-            # Load and play the music
-            pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
-            pg.mixer.music.play(-1)  # Play the music in a loop
+
 
         main_menu = pm.Menu(title=self.title,
                             width=self.width,
@@ -97,13 +103,26 @@ class MainMenu:
         main_menu.add.button('Settings', settings_menu)
         main_menu.add.button('Exit', pm.events.EXIT, font_color=WHITE)
 
-        # Run the main menu
+        if not sound_muted:
+            # Load and play the music
+            pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
+            pg.mixer.music.play(-1)  # Play the music in a loop
+
+        # Main menu event loop
         while True:
             events = pg.event.get()
             for event in events:
                 if event.type == pg.QUIT:
                     pg.quit()
                     exit()
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_2:
+                        print("Pressed 2")
+                        console_thread = threading.Thread(target=start_console, args=(self.set_sound_muted,))
+                        console_thread.daemon = True
+                        console_thread.start()
+
+
 
             self.bg.update()
             self.bg.draw()
@@ -112,17 +131,23 @@ class MainMenu:
             main_menu.draw(self.screen)
             pg.display.flip()
 
+
+
     def start_game(self):
+        """Start the game and switch to the game loop."""
         self.screen.fill((0, 0, 0))
         pg.display.update()
         self.start_game_callback()
 
-    def set_sound_muted(self, value, mute):
-        global sound_muted  # Declare sound_muted as global
+    def set_sound_muted(self, value, mute) -> bool:
+        """Set whether the sound is muted."""
+        global sound_muted
         sound_muted = mute
         pg.mixer.music.set_volume(config.getboolean("sound", "muted") or sound_muted)
+        return sound_muted
 
     def set_fullscreen(self, value, fullscreen, **kwargs):
+        """Set the fullscreen state."""
         self.fullscreen = fullscreen
         if self.fullscreen:
             pg.display.set_mode((self.width, self.height), pg.FULLSCREEN)

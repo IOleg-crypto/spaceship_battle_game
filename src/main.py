@@ -4,23 +4,17 @@ from menu.menu import *
 from materials.assets import *
 from entities.spaceship import *
 from entities.enemy import *
-from console import Console
 
 import random
 
-"""To separate game window and console"""
-import threading
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 
+global sound_muted
 
-def start_console(sound_muted: bool):
-    root = tk.Tk()
-    console = Console(sound_muted)
-    root.mainloop()
 
 
 class MovingBackground:
@@ -42,22 +36,20 @@ class MovingBackground:
 
 
 def handle_spaceship_movement(keys, render):
-    if keys[pg.K_LEFT]:
-        render.update(-5, 0)
-    if keys[pg.K_RIGHT]:
-        render.update(5, 0)
-    if keys[pg.K_UP]:
-        render.update(0, -5)
-    if keys[pg.K_DOWN]:
-        render.update(0, 5)
-    if keys[pg.K_w]:
-        render.update(0, -5)
-    if keys[pg.K_s]:
-        render.update(0, 5)
-    if keys[pg.K_a]:
-        render.update(-5, 0)
-    if keys[pg.K_d]:
-        render.update(5, 0)
+    movement = {
+        pg.K_LEFT: (-5, 0),
+        pg.K_RIGHT: (5, 0),
+        pg.K_UP: (0, -5),
+        pg.K_DOWN: (0, 5),
+        pg.K_w: (0, -5),
+        pg.K_s: (0, 5),
+        pg.K_a: (-5, 0),
+        pg.K_d: (5, 0)
+    }
+
+    for key, (dx, dy) in movement.items():
+        if keys[key]:
+            render.update(dx, dy)
 
 
 """Config read"""
@@ -83,6 +75,7 @@ def set_difficulty(num_enemies: int):
 
 
 def main():
+    global console_open
     config.read("config/config.cfg")
     fullscreen = config.getboolean("window", "fullscreen")
     '''''''''''''''''''''''
@@ -110,11 +103,6 @@ def main():
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group(load_enemy)
     shells = RenderSpaceShipShells(shell_spaceship)
-
-    sound_muted = True
-    console_thread = threading.Thread(target=start_console, args=(sound_muted,))
-    console_thread.daemon = True
-    console_thread.start()
 
     explosion_group = pg.sprite.Group()
 
@@ -171,7 +159,7 @@ def game_loop(
 ):
     last_shot_time = 0
     current_time = pg.time.get_ticks()
-    key_delay = 500
+    key_delay = 2500
 
     running_program = True
     game_finish = True
@@ -293,7 +281,7 @@ def game_loop(
         text_health_rect = text_health.get_rect()
         if show_debug_text:
             screen.blit(text_surface, text_rect)
-            text_rect.topleft = (10, 10)
+            text_rect.topleft = (5, 10)
             text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)
             text_health_rect.topleft = (
                 text_score_rect.left,

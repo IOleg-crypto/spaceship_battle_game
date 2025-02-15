@@ -1,7 +1,7 @@
 """Console for spaceship game."""
 
-import pygame as pg
 import tkinter as tk
+import pygame as pg
 
 
 class Console(tk.Tk):
@@ -16,7 +16,7 @@ class Console(tk.Tk):
 
         # Set fixed window size and prevent resizing
         self.geometry("800x600")  # Example size, can be adjusted
-        self.resizable(False, False)
+        self.resizable(True, True)
 
         self.config(bg="gray")
         self.wm_attributes("-alpha", 0.9)  # 0.8 means 80% opaque (20% transparent)
@@ -40,31 +40,28 @@ class Console(tk.Tk):
         self.text_widget.insert(tk.END, f"> {command}\n")
         self.entry.delete(0, tk.END)
 
-        # Define possible commands
         commands = {
             "m_soundmute 1": lambda: self.toggle_sound(True),
             "m_soundmute 0": lambda: self.toggle_sound(False),
             "cls": lambda: self.clear_text(),
         }
-
-        # Execute the command or show an unknown command message
+        result = "Spaceship Game! Build 1.0"
         result = commands.get(command, lambda: f"Unknown command: {command}")()
 
         self.text_widget.insert(tk.END, f"{result}\n")
         self.text_widget.config(state=tk.DISABLED)
         self.text_widget.see(tk.END)
 
-    def toggle_sound(self, mute: bool):
+    def toggle_sound(self):
         """Toggle the mute/unmute state."""
-        self.sound_muted = mute
+        self.sound_muted = not self.sound_muted
         pg.mixer.music.set_volume(0 if self.sound_muted else 1)  # Mute or unmute the music
         self.update_sound_state()
 
     def update_sound_state(self):
         """Update the display of the sound state in the console."""
         state = "Muted" if self.sound_muted else "Unmuted"
-        self.text_widget.insert(tk.END, f"Sound is {state}\n")
+        self.text.insert(tk.END, f"Sound is {state}\n")
 
     def clear_text(self):
-        """Clear the output text area."""
         self.text_widget.delete("1.0", tk.END)
