@@ -1,6 +1,8 @@
 import os
 import pygame as pg
 
+""" Assets for game """
+
 base_path = os.getcwd()
 print(base_path)
 

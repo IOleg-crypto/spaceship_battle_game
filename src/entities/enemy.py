@@ -1,4 +1,4 @@
-# Ednemy realization
+"""Enemy realisation."""
 
 import random
 

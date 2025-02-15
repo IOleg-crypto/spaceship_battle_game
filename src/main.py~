@@ -7,7 +7,6 @@ from entities.enemy import *
 from console import Console
 
 import random
-
 """To separate game window and console"""
 import threading
 
@@ -17,7 +16,7 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 
 
-def start_console(sound_muted: bool):
+def start_console(sound_muted : bool):
     root = tk.Tk()
     console = Console(sound_muted)
     root.mainloop()
@@ -58,7 +57,6 @@ def handle_spaceship_movement(keys, render):
         render.update(-5, 0)
     if keys[pg.K_d]:
         render.update(5, 0)
-
 
 """Config read"""
 

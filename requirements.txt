@@ -6,3 +6,5 @@ pygame_menu
 auto-py-to-exe
 #for config.cfg
 configparser
+# for console
+tk
