@@ -1,4 +1,4 @@
-"""Console for spaceship game."""
+"""Console for spaceship game with autocomplete."""
 
 import pygame as pg
 import tkinter as tk
@@ -12,13 +12,13 @@ config.read("config/config.cfg")
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
-
-
 class Console(tk.Tk):
-    def __init__(self, sound_muted: bool):
+    def __init__(self, sound_muted: bool, screen_height: int, screen_width: int):
         super().__init__()
         self.title("Console")
         self.sound_muted = sound_muted
+        self.screen_height = screen_height
+        self.screen_width = screen_width
 
         # Initialize pygame mixer
         pg.init()
@@ -27,14 +27,13 @@ class Console(tk.Tk):
         # Set fixed window size and prevent resizing
         self.geometry("800x600")
         self.resizable(False, False)
-
         self.config(bg="gray")
         self.wm_attributes("-alpha", 0.9)
 
         # Output window (Text)
         self.text_widget = tk.Text(self, height=15, width=110, bg="gray", fg="white", font=("Courier New", 9))
         self.text_widget.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
-        self.text_widget.config(state=tk.NORMAL)  # Enable writing on startup
+        self.text_widget.config(state=tk.NORMAL)
 
         # Show startup text
         startup_text = (
@@ -44,70 +43,93 @@ class Console(tk.Tk):
             "Date compiled: 15.02.2025\n"
         )
         self.text_widget.insert(tk.END, startup_text)
-        self.text_widget.config(state=tk.DISABLED)  # Make it read-only again
+        self.text_widget.config(state=tk.DISABLED)
 
         # Input field (Entry)
         self.entry = tk.Entry(self, width=80, bg="gray", fg="white", font=("Courier New", 9))
         self.entry.pack(padx=5, pady=2, fill=tk.X)
         self.entry.bind("<Return>", self.execute_command)
-        self.entry.bind("<KeyRelease>", self.auto_complete)  # Auto-complete event
+        self.entry.bind("<KeyRelease>", self.show_suggestions)
+        self.entry.bind("<Tab>", self.autocomplete)
 
-        # Available commands for auto-completion
+        # Listbox for autocomplete
+        self.listbox = tk.Listbox(self, bg="gray", fg="white", font=("Courier New", 9), height=5)
+        self.listbox.pack(padx=5, pady=2, fill=tk.X)
+        self.listbox.bind("<<ListboxSelect>>", self.select_from_listbox)
+
+        # Available commands
         self.commands = ["sound 1", "sound 0", "cls", "help"]
+        self.suggestion_index = -1  # Tracks the selected suggestion in Listbox
 
-        self.deiconify()  # Show the console window
+        self.deiconify()
 
     def execute_command(self, event):
-        command = self.entry.get()
+        """Handles execution of entered commands."""
+        command = self.entry.get().strip()
         self.text_widget.config(state=tk.NORMAL)
         self.text_widget.insert(tk.END, f"> {command}\n")
         self.entry.delete(0, tk.END)
+        self.listbox.delete(0, tk.END)  # Clear suggestion box
 
-        # Define possible commands
         commands = {
-            "sound 1": lambda: self.toggle_sound(True),
-            "sound 0": lambda: self.toggle_sound(False),
-            "cls": lambda: self.clear_text(),
+            "sound 0": lambda: self.toggle_sound(True),
+            "sound 1": lambda: self.toggle_sound(False),
+            "cls": self.clear_text,
             "help": lambda: "Available commands: " + ", ".join(self.commands),
         }
 
-        # Execute the command or show an unknown command message
         result = commands.get(command, lambda: f"Unknown command: {command}")()
-
         self.text_widget.insert(tk.END, f"{result}\n")
         self.text_widget.config(state=tk.DISABLED)
         self.text_widget.see(tk.END)
 
-    def auto_complete(self, event):
-        """Auto-complete the input field based on available commands."""
-        typed_text = self.entry.get()
-        if typed_text:  # Only suggest if there is input
-            for command in self.commands:
-                if command.startswith(typed_text):
-                    self.entry.delete(0, tk.END)
-                    self.entry.insert(0, command)
-                    self.entry.icursor(len(typed_text))  # Keep cursor at user input
-                    break  # Stop at the first match
+    def show_suggestions(self, event):
+        """Displays autocomplete suggestions in the listbox."""
+        value = self.entry.get().strip().lower()
+        self.listbox.delete(0, tk.END)
+
+        if not value:
+            return  # Don't show suggestions when input is empty
+
+        matches = [cmd for cmd in self.commands if cmd.startswith(value)]
+        for match in matches:
+            self.listbox.insert(tk.END, match)
+
+        self.suggestion_index = -1  # Reset selection
+
+    def autocomplete(self, event):
+        """Fills the entry with the first suggestion on Tab key."""
+        if self.listbox.size() > 0:
+            selected = self.listbox.get(0)
+            self.entry.delete(0, tk.END)
+            self.entry.insert(0, selected)
+            self.listbox.delete(0, tk.END)  # Hide suggestions
+        return "break"  # Prevent default Tab behavior
+
+    def select_from_listbox(self, event):
+        """Handles selection from the autocomplete listbox."""
+        selected = self.listbox.get(tk.ACTIVE)
+        self.entry.delete(0, tk.END)
+        self.entry.insert(0, selected)
+        self.listbox.delete(0, tk.END)  # Hide suggestions
 
     def toggle_sound(self, mute: bool):
-        """Toggle the mute/unmute state."""
+        """Toggle sound on/off."""
         self.sound_muted = mute
-        pg.mixer.music.set_volume(0 if self.sound_muted else 1)  # Mute or unmute the music
+        pg.mixer.music.set_volume(0 if self.sound_muted else 1)
         self.update_sound_state()
 
     def update_sound_state(self):
-        """Update the display of the sound state in the console."""
+        """Update sound state display."""
         state = "Muted" if self.sound_muted else "Unmuted"
         self.text_widget.config(state=tk.NORMAL)
         self.text_widget.insert(tk.END, f"Sound is {state}\n")
         self.text_widget.config(state=tk.DISABLED)
 
     def clear_text(self):
-        """Clear the output text area."""
+        """Clear the console output."""
         self.text_widget.config(state=tk.NORMAL)
         self.text_widget.delete("1.0", tk.END)
-
-        # Reinsert startup text after clearing
         startup_text = (
             "SpaceShip Battle! Build 1.0\n"
             "Author: I#Oleg\n"

@@ -71,6 +71,9 @@ def set_difficulty(num_enemies: int):
         num_enemies = random.randint(5, 40)
     return num_enemies
 
+def show_information():
+    pass
+
 
 def main():
     global console_open
@@ -161,7 +164,6 @@ def game_loop(
 
     running_program = True
     game_finish = True
-    show_debug_text = True
 
     count = 0
     score = 0
@@ -253,9 +255,7 @@ def game_loop(
         keys = pg.key.get_pressed()
         if game_finish:
             handle_spaceship_movement(keys, render)
-            if keys[pg.K_x]:
-                show_debug_text = not show_debug_text
-            if keys[pg.K_SPACE] and (current_time - last_shot_time > key_delay):
+            if keys[pg.K_SPACE]:
                 last_shot_time = current_time
                 shells.shoot_shell(render.rect.center)
                 if not sound_muted or not pg.mixer.get_busy():
@@ -270,7 +270,7 @@ def game_loop(
         screen.blit(loading_background, (0, 0))
 
         """display text"""
-        font = pg.font.Font("font/Pacifico.ttf", 36)
+        font = pg.font.Font("font/Pacifico.ttf", 32)
         text_surface = font.render("Shooted bullets : " + str(count), True, WHITE)
         text_score = font.render("Score : " + str(score), True, WHITE)
         text_health = font.render("Health : " + str(render.health), True, RED)
@@ -278,19 +278,15 @@ def game_loop(
         text_rect = text_surface.get_rect()
         text_score_rect = text_score.get_rect()
         text_health_rect = text_health.get_rect()
-        if show_debug_text:
-            screen.blit(text_surface, text_rect)
-            text_rect.topleft = (5, 10)
-            text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)
-            text_health_rect.topleft = (
-                text_score_rect.left,
-                text_score_rect.bottom + 10,
-            )
-            screen.blit(text_score, text_score_rect)
-            screen.blit(text_health, text_health_rect)
-        else:
-            screen.blit(text_score, text_score_rect)
-            screen.blit(text_health, text_health_rect)
+        screen.blit(text_surface, text_rect)
+        text_rect.topleft = (5, 10)
+        text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)
+        text_health_rect.topleft = (
+            text_score_rect.left,
+            text_score_rect.bottom + 10,
+        )
+        screen.blit(text_score, text_score_rect)
+        screen.blit(text_health, text_health_rect)
 
         all_sprites.draw(screen)
         enemy_sprite.draw(screen)

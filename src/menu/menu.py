@@ -41,7 +41,7 @@ def open_filedialog(file_path: str) -> str:
     return file_path
 
 
-def start_console(sound_muted: bool):
+def start_console(sound_muted: bool, screen_width: int, screen_height: int):
     global console_open
     if console_open:
         return
@@ -49,7 +49,8 @@ def start_console(sound_muted: bool):
         console_open = True  # Mark the console as open
         root = tk.Tk()  # Create a new tkinter window
         root.withdraw()  # to hide the root window
-        console = Console(sound_muted)  # Pass the root and sound_muted value to the Console class
+        console = Console(sound_muted, screen_width=screen_width,
+                          screen_height=screen_height)  # Pass the root and sound_muted value to the Console class
         root.mainloop()  # Start the tkinter main event loop
 
 
@@ -119,7 +120,8 @@ class MainMenu:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_2:
                         print("Pressed 2")
-                        console_thread = threading.Thread(target=start_console, args=(self.set_sound_muted,))
+                        console_thread = threading.Thread(target=start_console,
+                                                          args=(self.set_sound_muted, self.width, self.height,))
                         console_thread.daemon = True
                         console_thread.start()
 
