@@ -28,6 +28,7 @@ config.read("config/config.cfg")
 
 console_open = False
 
+
 def open_filedialog(file_path: str) -> str:
     """Opens the file dialog for choosing an entity image."""
     root = tk.Tk()
@@ -47,8 +48,10 @@ def start_console(sound_muted: bool):
     else:
         console_open = True  # Mark the console as open
         root = tk.Tk()  # Create a new tkinter window
+        root.withdraw()  # to hide the root window
         console = Console(sound_muted)  # Pass the root and sound_muted value to the Console class
         root.mainloop()  # Start the tkinter main event loop
+
 
 class MainMenu:
     def __init__(self, width, height, title, screen, start_game_callback, fullscreen: bool):
@@ -72,12 +75,10 @@ class MainMenu:
         print(f"Difficulty set to: {self.difficulty}")
 
     def draw_menu(self):
-        """Draws the menu and listens for events, including F12 for console toggle."""
+        """Draws the menu and listens for events, including 2 for console toggle."""
         pg.mixer.init()
 
         sound_muted = config.getboolean("sound", "muted")
-
-
 
         main_menu = pm.Menu(title=self.title,
                             width=self.width,
@@ -122,16 +123,12 @@ class MainMenu:
                         console_thread.daemon = True
                         console_thread.start()
 
-
-
             self.bg.update()
             self.bg.draw()
 
             main_menu.update(events)
             main_menu.draw(self.screen)
             pg.display.flip()
-
-
 
     def start_game(self):
         """Start the game and switch to the game loop."""
@@ -146,7 +143,7 @@ class MainMenu:
         pg.mixer.music.set_volume(config.getboolean("sound", "muted") or sound_muted)
         return sound_muted
 
-    def set_fullscreen(self, value, fullscreen, **kwargs):
+    def set_fullscreen(self, fullscreen, **kwargs):
         """Set the fullscreen state."""
         self.fullscreen = fullscreen
         if self.fullscreen:

@@ -15,6 +15,7 @@ GREEN = (0, 255, 0)
 global sound_muted
 
 
+
 class MovingBackground:
     def __init__(self, screen, image_path, speed):
         self.screen = screen

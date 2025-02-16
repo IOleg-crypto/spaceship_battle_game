@@ -1,0 +1,12 @@
+# main library to make game
+pygame
+#for making menu
+pygame_menu
+#need to convert project to exe
+auto-py-to-exe
+#for config.cfg
+configparser
+# for console
+tk
+#ctypes
+ctypes
