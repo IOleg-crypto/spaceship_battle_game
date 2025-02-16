@@ -13,4 +13,4 @@ enemy_image_path = os.path.join("assets/spaceships", "spaceship2d_2.png")
 alien_image_path = os.path.join("assets/invaders", "ufo.png")
 
 # Background
-loading_background = pg.image.load(os.path.join("assets/background", "space_background.png"))
+background = pg.image.load(os.path.join("assets/background", "space_background.png"))

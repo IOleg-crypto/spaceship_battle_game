@@ -64,15 +64,30 @@ def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
 def set_difficulty(num_enemies: int):
     if MainMenu.set_difficulty == "Hard":
         num_enemies = random.randint(7, 30)
-
     elif MainMenu.set_difficulty == "Normal":
         num_enemies = random.randint(6, 35)
     else:
         num_enemies = random.randint(5, 40)
     return num_enemies
 
-def show_information():
-    pass
+
+def display_information(font, count, score, render, screen):
+    text_surface = font.render("Shooted bullets : " + str(count), True, WHITE)
+    text_score = font.render("Score : " + str(score), True, WHITE)
+    text_health = font.render("Health : " + str(render.health), True, RED)
+
+    text_rect = text_surface.get_rect()
+    text_score_rect = text_score.get_rect()
+    text_health_rect = text_health.get_rect()
+    screen.blit(text_surface, text_rect)
+    text_rect.topleft = (5, 10)
+    text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)
+    text_health_rect.topleft = (
+        text_score_rect.left,
+        text_score_rect.bottom + 10,
+    )
+    screen.blit(text_score, text_score_rect)
+    screen.blit(text_health, text_health_rect)
 
 
 def main():
@@ -137,8 +152,10 @@ def main():
             enemies,
             spaceship,
             config,
+
         ),
-        fullscreen
+        fullscreen,
+        enemies=num_enemies
 
     )
     main_menu.draw_menu()
@@ -167,6 +184,7 @@ def game_loop(
 
     count = 0
     score = 0
+
     render.health = 100
 
     load_enemy = Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
@@ -196,7 +214,8 @@ def game_loop(
                         "Spaceship Battle",
                         screen,
                         lambda: main(),
-                        fullscreen
+                        fullscreen,
+                        enemies=num_enemies
                     )
                     main_menu.draw_menu()
 
@@ -215,7 +234,6 @@ def game_loop(
             ):  # Check collision with player's spaceship
                 if render.take_damage(3) <= 0:  # Adjust damage as needed
                     game_finish = False
-                    game_lose = True
                     text_game_over = pg.font.Font("font/Pacifico.ttf", 36).render(
                         "Game Over! Press 1 to exit", True, RED
                     )
@@ -267,26 +285,11 @@ def game_loop(
         enemy_sprite.update()
         spaceship_sprite.update()
 
-        screen.blit(loading_background, (0, 0))
+        screen.blit(background, (0, 0))
 
         """display text"""
         font = pg.font.Font("font/Pacifico.ttf", 32)
-        text_surface = font.render("Shooted bullets : " + str(count), True, WHITE)
-        text_score = font.render("Score : " + str(score), True, WHITE)
-        text_health = font.render("Health : " + str(render.health), True, RED)
-
-        text_rect = text_surface.get_rect()
-        text_score_rect = text_score.get_rect()
-        text_health_rect = text_health.get_rect()
-        screen.blit(text_surface, text_rect)
-        text_rect.topleft = (5, 10)
-        text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)
-        text_health_rect.topleft = (
-            text_score_rect.left,
-            text_score_rect.bottom + 10,
-        )
-        screen.blit(text_score, text_score_rect)
-        screen.blit(text_health, text_health_rect)
+        display_information(font, count, score, render, screen)
 
         all_sprites.draw(screen)
         enemy_sprite.draw(screen)

@@ -13,12 +13,14 @@ ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
 class Console(tk.Tk):
-    def __init__(self, sound_muted: bool, screen_height: int, screen_width: int):
+    def __init__(self, sound_muted: bool, screen_height: int, screen_width: int , enemies : int):
         super().__init__()
         self.title("Console")
         self.sound_muted = sound_muted
         self.screen_height = screen_height
         self.screen_width = screen_width
+        self.enemies = enemies
+        self.number = 0
 
         # Initialize pygame mixer
         pg.init()
@@ -58,7 +60,7 @@ class Console(tk.Tk):
         self.listbox.bind("<<ListboxSelect>>", self.select_from_listbox)
 
         # Available commands
-        self.commands = ["sound 1", "sound 0", "cls", "help"]
+        self.commands = ["sound 1", "sound 0", "cls", "enemies"]
         self.suggestion_index = -1  # Tracks the selected suggestion in Listbox
 
         self.deiconify()
@@ -71,14 +73,25 @@ class Console(tk.Tk):
         self.entry.delete(0, tk.END)
         self.listbox.delete(0, tk.END)  # Clear suggestion box
 
-        commands = {
-            "sound 0": lambda: self.toggle_sound(True),
-            "sound 1": lambda: self.toggle_sound(False),
-            "cls": self.clear_text,
-            "help": lambda: "Available commands: " + ", ".join(self.commands),
-        }
+        # Handle "enemies {number}" separately
+        if command.startswith("enemies "):
+            try:
+                number = int(command.split(" ")[1])  # Extract number
+                self.enemies = number
+                result = f"Enemies set to {self.enemies}"
+            except (IndexError, ValueError):
+                result = "Invalid usage! Use: enemies {number}"
+        else:
+            # Static commands dictionary
+            commands = {
+                "sound 0": lambda: self.toggle_sound(True),
+                "sound 1": lambda: self.toggle_sound(False),
+                "cls": self.clear_text,
+                "help": lambda: "Available commands: " + ", ".join(self.commands),
+            }
 
-        result = commands.get(command, lambda: f"Unknown command: {command}")()
+            result = commands.get(command, lambda: f"Unknown command: {command}")()
+
         self.text_widget.insert(tk.END, f"{result}\n")
         self.text_widget.config(state=tk.DISABLED)
         self.text_widget.see(tk.END)
@@ -138,3 +151,4 @@ class Console(tk.Tk):
         )
         self.text_widget.insert(tk.END, startup_text)
         self.text_widget.config(state=tk.DISABLED)
+

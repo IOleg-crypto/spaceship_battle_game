@@ -41,7 +41,7 @@ def open_filedialog(file_path: str) -> str:
     return file_path
 
 
-def start_console(sound_muted: bool, screen_width: int, screen_height: int):
+def start_console(sound_mute: bool, screen_width: int, screen_height: int, enemies: int):
     global console_open
     if console_open:
         return
@@ -49,13 +49,13 @@ def start_console(sound_muted: bool, screen_width: int, screen_height: int):
         console_open = True  # Mark the console as open
         root = tk.Tk()  # Create a new tkinter window
         root.withdraw()  # to hide the root window
-        console = Console(sound_muted, screen_width=screen_width,
-                          screen_height=screen_height)  # Pass the root and sound_muted value to the Console class
+        Console(sound_mute, screen_width=screen_width,
+                screen_height=screen_height,enemies=enemies)  # Pass the root and sound_muted value to the Console class
         root.mainloop()  # Start the tkinter main event loop
 
 
 class MainMenu:
-    def __init__(self, width, height, title, screen, start_game_callback, fullscreen: bool):
+    def __init__(self, width, height, title, screen, start_game_callback, fullscreen: bool , enemies : int):
         self.title = title
         self.width = width
         self.height = height
@@ -65,21 +65,20 @@ class MainMenu:
         self.fullscreen = fullscreen
         self.bg = MovingBackground(screen, os.path.join("assets/background", "background.jpg"), 2)
 
+        self.enemies = enemies
         self.custom_theme = pm.themes.THEME_DARK.copy()
         self.custom_theme.background_color = pm.baseimage.BaseImage(
             image_path=os.path.join("assets/background", "background.jpg"),
             drawing_mode=pm.baseimage.IMAGE_MODE_FILL
         )
 
-    def set_difficulty(self, value, difficulty):
+    def set_difficulty(self, difficulty):
         self.difficulty = difficulty
         print(f"Difficulty set to: {self.difficulty}")
 
     def draw_menu(self):
         """Draws the menu and listens for events, including 2 for console toggle."""
         pg.mixer.init()
-
-        sound_muted = config.getboolean("sound", "muted")
 
         main_menu = pm.Menu(title=self.title,
                             width=self.width,
@@ -88,7 +87,7 @@ class MainMenu:
 
         settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
 
-        settings_menu.add.selector('Mute menu music :', [('Off', False), ('On', True)], onchange=self.set_sound_muted)
+        settings_menu.add.selector('Mute menu music :', [('Off', False), ('On', True)], onchange=self.set_sound_status)
         settings_menu.add.selector(
             'Fullscreen: ',
             [('Off', False), ('On', True)],
@@ -121,7 +120,7 @@ class MainMenu:
                     if event.key == pg.K_2:
                         print("Pressed 2")
                         console_thread = threading.Thread(target=start_console,
-                                                          args=(self.set_sound_muted, self.width, self.height,))
+                                                          args=(self.set_sound_status, self.width, self.height,self.enemies,))
                         console_thread.daemon = True
                         console_thread.start()
 
@@ -138,7 +137,7 @@ class MainMenu:
         pg.display.update()
         self.start_game_callback()
 
-    def set_sound_muted(self, value, mute) -> bool:
+    def set_sound_status(self, value, mute) -> bool:
         """Set whether the sound is muted."""
         global sound_muted
         sound_muted = mute
@@ -153,3 +152,4 @@ class MainMenu:
         else:
             pg.display.set_mode((self.width, self.height))
         print(f"Fullscreen mode is now {'enabled' if self.fullscreen else 'disabled'}.")
+
