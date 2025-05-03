@@ -1,9 +1,11 @@
 """main.py - main game functionality"""
 
-from menu.menu import *
-from materials.assets import *
-from entities.spaceship import *
-from entities.enemy import *
+from menu import MainMenu
+from materials import *
+from blast import RenderSpaceShipShells
+from entities import Enemy
+from entities import RenderSpaceShip
+import configparser as cfg
 
 import random
 
@@ -12,25 +14,44 @@ RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 
-global sound_muted
+"""Config read"""
+
+config = cfg.ConfigParser()
 
 
-class MovingBackground:
-    def __init__(self, screen, image_path, speed):
-        self.screen = screen
-        self.bg_image = pg.image.load(image_path)
-        self.bg_image = pg.transform.scale(self.bg_image, (screen.get_width(), screen.get_height()))
-        self.bg_y = 0
-        self.speed = speed
+def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
+    images = [enemy_image_path, alien_image_path]
+    enemies = [Enemy(screen, random.choice(images)) for _ in range(num_enemies)]
+    return enemies
 
-    def update(self):
-        self.bg_y += self.speed
-        if self.bg_y >= self.screen.get_height():
-            self.bg_y = 0
 
-    def draw(self):
-        self.screen.blit(self.bg_image, (0, self.bg_y))
-        self.screen.blit(self.bg_image, (0, self.bg_y - self.screen.get_height()))
+def set_difficulty(num_enemies: int) -> int:
+    if MainMenu.set_difficulty == "Hard":
+        num_enemies = random.randint(7, 30)
+    elif MainMenu.set_difficulty == "Normal":
+        num_enemies = random.randint(6, 35)
+    else:
+        num_enemies = random.randint(5, 40)
+    return num_enemies
+
+
+def display_information(font, count, score, render, screen):
+    text_surface = font.render("Shot bullets : " + str(count), True, WHITE)
+    text_score = font.render("Score : " + str(score), True, WHITE)
+    text_health = font.render("Health : " + str(render.health), True, RED)
+
+    text_rect = text_surface.get_rect()
+    text_score_rect = text_score.get_rect()
+    text_health_rect = text_health.get_rect()
+    screen.blit(text_surface, text_rect)
+    text_rect.topleft = (5, 10)
+    text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)
+    text_health_rect.topleft = (
+        text_score_rect.left,
+        text_score_rect.bottom + 10,
+    )
+    screen.blit(text_score, text_score_rect)
+    screen.blit(text_health, text_health_rect)
 
 
 def handle_spaceship_movement(keys, render):
@@ -50,47 +71,8 @@ def handle_spaceship_movement(keys, render):
             render.update(dx, dy)
 
 
-"""Config read"""
-
-config = cfg.ConfigParser()
-
-
-def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
-    images = [enemy_image_path, alien_image_path]
-    enemies = [Enemy(screen, random.choice(images)) for _ in range(num_enemies)]
-    return enemies
-
-
-def set_difficulty(num_enemies: int):
-    if MainMenu.set_difficulty == "Hard":
-        num_enemies = random.randint(7, 30)
-    elif MainMenu.set_difficulty == "Normal":
-        num_enemies = random.randint(6, 35)
-    else:
-        num_enemies = random.randint(5, 40)
-    return num_enemies
-
-
-def display_information(font, count, score, render, screen):
-    text_surface = font.render("Shooted bullets : " + str(count), True, WHITE)
-    text_score = font.render("Score : " + str(score), True, WHITE)
-    text_health = font.render("Health : " + str(render.health), True, RED)
-
-    text_rect = text_surface.get_rect()
-    text_score_rect = text_score.get_rect()
-    text_health_rect = text_health.get_rect()
-    screen.blit(text_surface, text_rect)
-    text_rect.topleft = (5, 10)
-    text_score_rect.topleft = (text_rect.left, text_rect.bottom + 10)
-    text_health_rect.topleft = (
-        text_score_rect.left,
-        text_score_rect.bottom + 10,
-    )
-    screen.blit(text_score, text_score_rect)
-    screen.blit(text_health, text_health_rect)
-
-
 def main():
+    global sound_muted
     global console_open
     config.read("config/config.cfg")
     fullscreen = config.getboolean("window", "fullscreen")
@@ -115,7 +97,7 @@ def main():
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
 
     render = RenderSpaceShip(spaceship_pos, spaceship)
-    load_enemy = Enemy(screen, enemy_image_path)
+    load_enemy = Enemy(screen, enemy_sprite_path)
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group(load_enemy)
     shells = RenderSpaceShipShells(shell_spaceship)
@@ -125,7 +107,7 @@ def main():
     # Create multiple enemies
     # Number of enemies to create
     enemies = [
-        Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
+        Enemy(screen, random.choice([alien_sprite_path, enemy_sprite_path]))
         for _ in range(num_enemies)
     ]
     for enemy in enemies:
@@ -145,8 +127,8 @@ def main():
             shells,
             load_enemy,
             enemy_sprite,
-            enemy_image_path,
-            alien_image_path,
+            enemy_sprite_path,
+            alien_sprite_path,
             num_enemies,
             explosion_group,
             enemies,
@@ -161,20 +143,8 @@ def main():
     main_menu.draw_menu()
 
 
-def game_loop(
-        screen,
-        clock,
-        render,
-        all_sprites,
-        shells,
-        main_menu,
-        enemy_sprite,
-        enemy_image_path,
-        alien_image_path,
-        num_enemies,
-        explosion_group,
-        enemies, spaceship, fullscreen
-):
+def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite, enemy_image_path, alien_image_path,
+              num_enemies, explosion_group, enemies, spaceship, fullscreen):
     last_shot_time = 0
     current_time = pg.time.get_ticks()
     key_delay = 2500
@@ -190,8 +160,6 @@ def game_loop(
     load_enemy = Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group()
-    shells_enemy_sprite = pg.sprite.Group()
-    bullet_group = pg.sprite.Group()
     enemy_shells = pg.sprite.Group()
     spaceship_sprite = pg.sprite.Group()
     spaceship_sprite.add(render)
@@ -262,13 +230,12 @@ def game_loop(
                                 explosion_group,
                                 enemies,
                                 spaceship,
+                                fullscreen=fullscreen
                             ),
-                            fullscreen
                         )
                         main_menu.draw_menu()
                 bullet.kill()  # Remove bullet after collision
 
-        last_shot_time = 0
         current_time = pg.time.get_ticks()
         keys = pg.key.get_pressed()
         if game_finish:
@@ -276,7 +243,7 @@ def game_loop(
             if keys[pg.K_SPACE]:
                 last_shot_time = current_time
                 shells.shoot_shell(render.rect.center)
-                if not sound_muted or not pg.mixer.get_busy():
+                if not pg.mixer.get_busy():
                     pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3").play(0, 0, 0)
                 count += 1
 

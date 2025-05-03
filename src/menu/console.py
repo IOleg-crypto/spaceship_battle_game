@@ -13,7 +13,7 @@ ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
 class Console(tk.Tk):
-    def __init__(self, sound_muted: bool, screen_height: int, screen_width: int , enemies : int):
+    def __init__(self, sound_muted: bool, screen_height: int, screen_width: int, enemies: int):
         super().__init__()
         self.title("Console")
         self.sound_muted = sound_muted
@@ -151,4 +151,3 @@ class Console(tk.Tk):
         )
         self.text_widget.insert(tk.END, startup_text)
         self.text_widget.config(state=tk.DISABLED)
-

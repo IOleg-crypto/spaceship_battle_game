@@ -1,5 +1,6 @@
+from blast import *
 
-from src.gunfire_and_blasts import *
+import pygame as pg
 
 # Define color constants
 RED = (255, 0, 0)

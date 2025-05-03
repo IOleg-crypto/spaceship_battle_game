@@ -7,6 +7,11 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 
 
+"""
+    class AmmoAbility
+"""
+
+
 class AmmoAbility(pg.sprite.Sprite):
     def __init__(self, pos, sprite, speed):
         super().__init__()

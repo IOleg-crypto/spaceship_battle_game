@@ -1,8 +1,9 @@
 """Enemy realisation."""
 
 import random
+import pygame as pg
 
-from src.gunfire_and_blasts import *
+from blast import Explosion, Bullet
 
 
 class Enemy(pg.sprite.Sprite):

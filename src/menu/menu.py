@@ -4,11 +4,11 @@ import threading
 import tkinter as tk
 from tkinter import filedialog
 
-from src.main import MovingBackground
-from src.console import Console
+from .background import MovingBackground
+from .console import Console
 
 """materials"""
-from src.materials.assets import *
+from src.materials import *
 
 # Define color constants
 RED = (255, 0, 0)
@@ -50,12 +50,13 @@ def start_console(sound_mute: bool, screen_width: int, screen_height: int, enemi
         root = tk.Tk()  # Create a new tkinter window
         root.withdraw()  # to hide the root window
         Console(sound_mute, screen_width=screen_width,
-                screen_height=screen_height,enemies=enemies)  # Pass the root and sound_muted value to the Console class
+                screen_height=screen_height,
+                enemies=enemies)  # Pass the root and sound_muted value to the Console class
         root.mainloop()  # Start the tkinter main event loop
 
 
 class MainMenu:
-    def __init__(self, width, height, title, screen, start_game_callback, fullscreen: bool , enemies : int):
+    def __init__(self, width, height, title, screen, start_game_callback, fullscreen: bool, enemies: int):
         self.title = title
         self.width = width
         self.height = height
@@ -107,7 +108,7 @@ class MainMenu:
         if not sound_muted:
             # Load and play the music
             pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
-            pg.mixer.music.play(-1)  # Play the music in a loop
+            pg.mixer.music.play(0)  # Play the music in a loop
 
         # Main menu event loop
         while True:
@@ -120,7 +121,8 @@ class MainMenu:
                     if event.key == pg.K_2:
                         print("Pressed 2")
                         console_thread = threading.Thread(target=start_console,
-                                                          args=(self.set_sound_status, self.width, self.height,self.enemies,))
+                                                          args=(self.set_sound_status, self.width, self.height,
+                                                                self.enemies,))
                         console_thread.daemon = True
                         console_thread.start()
 
@@ -137,7 +139,8 @@ class MainMenu:
         pg.display.update()
         self.start_game_callback()
 
-    def set_sound_status(self, value, mute) -> bool:
+    @staticmethod
+    def set_sound_status(value, mute) -> bool:
         """Set whether the sound is muted."""
         global sound_muted
         sound_muted = mute
@@ -152,4 +155,3 @@ class MainMenu:
         else:
             pg.display.set_mode((self.width, self.height))
         print(f"Fullscreen mode is now {'enabled' if self.fullscreen else 'disabled'}.")
-
