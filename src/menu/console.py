@@ -13,13 +13,14 @@ ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
 class Console(tk.Tk):
-    def __init__(self, sound_muted: bool, screen_height: int, screen_width: int, enemies: int):
+    def __init__(self, shared_data, screen_height: int, screen_width: int, enemies: int):
         super().__init__()
         self.title("Console")
-        self.sound_muted = sound_muted
+        self.sound_muted = False
         self.screen_height = screen_height
         self.screen_width = screen_width
         self.enemies = enemies
+        self.shared_data = shared_data
         self.number = 0
 
         # Initialize pygame mixer
@@ -55,6 +56,7 @@ class Console(tk.Tk):
         self.entry.bind("<Tab>", self.autocomplete)
 
         # Listbox for autocomplete
+
         self.listbox = tk.Listbox(self, bg="gray", fg="white", font=("Courier New", 9), height=5)
         self.listbox.pack(padx=5, pady=2, fill=tk.X)
         self.listbox.bind("<<ListboxSelect>>", self.select_from_listbox)
@@ -64,6 +66,12 @@ class Console(tk.Tk):
         self.suggestion_index = -1  # Tracks the selected suggestion in Listbox
 
         self.deiconify()
+
+    def handle_command(self, cmd: str):
+        if cmd == "sound 0":
+            self.shared_data['sound_muted'] = True
+        elif cmd == "sound 1":
+            self.shared_data['sound_muted'] = False
 
     def execute_command(self, event):
         """Handles execution of entered commands."""

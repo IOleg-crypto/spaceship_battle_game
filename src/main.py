@@ -72,8 +72,8 @@ def handle_spaceship_movement(keys, render):
 
 
 def main():
-    global sound_muted
-    global console_open
+    sound_muted = False
+    console_open = False
     config.read("config/config.cfg")
     fullscreen = config.getboolean("window", "fullscreen")
     '''''''''''''''''''''''
@@ -115,6 +115,7 @@ def main():
         all_sprites.add(enemy)
 
     main_menu = MainMenu(
+        sound_muted,
         screen_width,
         screen_height,
         "Spaceship Battle",
@@ -137,7 +138,8 @@ def main():
 
         ),
         fullscreen,
-        enemies=num_enemies
+        enemies=num_enemies,
+
 
     )
     main_menu.draw_menu()

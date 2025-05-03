@@ -1,6 +1,7 @@
 import pygame_menu as pm
 import configparser as cfg
-import threading
+import multiprocessing as mp
+from multiprocessing import Manager
 import tkinter as tk
 from tkinter import filedialog
 
@@ -22,7 +23,6 @@ MAGENTA = (255, 0, 255)
 ORANGE = (255, 165, 0)
 PURPLE = (128, 0, 128)
 
-sound_muted = False
 config = cfg.ConfigParser()
 config.read("config/config.cfg")
 
@@ -41,22 +41,21 @@ def open_filedialog(file_path: str) -> str:
     return file_path
 
 
-def start_console(sound_mute: bool, screen_width: int, screen_height: int, enemies: int):
-    global console_open
-    if console_open:
-        return
-    else:
-        console_open = True  # Mark the console as open
-        root = tk.Tk()  # Create a new tkinter window
-        root.withdraw()  # to hide the root window
-        Console(sound_mute, screen_width=screen_width,
-                screen_height=screen_height,
-                enemies=enemies)  # Pass the root and sound_muted value to the Console class
-        root.mainloop()  # Start the tkinter main event loop
+def start_console(shared_data, screen_width: int, screen_height: int, enemies: int):
+    root = tk.Tk()
+    root.withdraw()
+
+    def on_close():
+        root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", on_close)
+
+    Console(shared_data, screen_width, screen_height, enemies)  # Передаємо shared_data
+    root.mainloop()
 
 
 class MainMenu:
-    def __init__(self, width, height, title, screen, start_game_callback, fullscreen: bool, enemies: int):
+    def __init__(self, sound_muted: bool, width, height, title, screen, start_game_callback, fullscreen: bool, enemies: int):
         self.title = title
         self.width = width
         self.height = height
@@ -65,7 +64,8 @@ class MainMenu:
         self.start_game_callback = start_game_callback
         self.fullscreen = fullscreen
         self.bg = MovingBackground(screen, os.path.join("assets/background", "background.jpg"), 2)
-
+        """To fix console issue(sound cmd not change bool"""
+        self.sound_muted = sound_muted
         self.enemies = enemies
         self.custom_theme = pm.themes.THEME_DARK.copy()
         self.custom_theme.background_color = pm.baseimage.BaseImage(
@@ -73,7 +73,7 @@ class MainMenu:
             drawing_mode=pm.baseimage.IMAGE_MODE_FILL
         )
 
-    def set_difficulty(self, difficulty):
+    def set_difficulty(self, difficulty: str):
         self.difficulty = difficulty
         print(f"Difficulty set to: {self.difficulty}")
 
@@ -85,7 +85,9 @@ class MainMenu:
                             width=self.width,
                             height=self.height,
                             theme=self.custom_theme)
-
+        """
+        # Navigation inside settings menu
+        """
         settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
 
         settings_menu.add.selector('Mute menu music :', [('Off', False), ('On', True)], onchange=self.set_sound_status)
@@ -96,6 +98,7 @@ class MainMenu:
         )
         settings_menu.add.selector('Select difficulty:', [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')],
                                    onchange=self.set_difficulty)
+
         settings_menu.add.button("Choose entities", lambda: open_filedialog(spaceship))
 
         settings_menu.add.button('Back', pm.events.BACK)
@@ -105,7 +108,7 @@ class MainMenu:
         main_menu.add.button('Settings', settings_menu)
         main_menu.add.button('Exit', pm.events.EXIT, font_color=WHITE)
 
-        if not sound_muted:
+        if not self.sound_muted:
             # Load and play the music
             pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
             pg.mixer.music.play(0)  # Play the music in a loop
@@ -118,13 +121,18 @@ class MainMenu:
                     pg.quit()
                     exit()
                 if event.type == pg.KEYDOWN:
+                    """Make a console when key 2 is pressed"""
                     if event.key == pg.K_2:
                         print("Pressed 2")
-                        console_thread = threading.Thread(target=start_console,
-                                                          args=(self.set_sound_status, self.width, self.height,
-                                                                self.enemies,))
-                        console_thread.daemon = True
-                        console_thread.start()
+                        """Using thread to make window"""
+                        manager = Manager()
+                        shared_data = manager.dict()
+                        shared_data['sound_muted'] = self.sound_muted
+                        console_process = mp.Process(
+                            target=start_console,
+                            args=[shared_data, self.width, self.height, self.enemies]
+                        )
+                        console_process.start()
 
             self.bg.update()
             self.bg.draw()
@@ -142,16 +150,18 @@ class MainMenu:
     @staticmethod
     def set_sound_status(value, mute) -> bool:
         """Set whether the sound is muted."""
-        global sound_muted
         sound_muted = mute
         pg.mixer.music.set_volume(config.getboolean("sound", "muted") or sound_muted)
         return sound_muted
 
-    def set_fullscreen(self, fullscreen, **kwargs):
-        """Set the fullscreen state."""
+    def set_fullscreen(self, _label: str, fullscreen: bool) -> bool:
         self.fullscreen = fullscreen
-        if self.fullscreen:
-            pg.display.set_mode((self.width, self.height), pg.FULLSCREEN)
+        """Set whether the game is in fullscreen mode."""
+        if not fullscreen:
+            self.screen = pg.display.set_mode((self.width, self.height))
         else:
-            pg.display.set_mode((self.width, self.height))
+            self.screen = pg.display.set_mode((self.width, self.height), pg.FULLSCREEN)
+        self.bg.screen = self.screen
+        """Just debug information"""
         print(f"Fullscreen mode is now {'enabled' if self.fullscreen else 'disabled'}.")
+        return self.fullscreen
