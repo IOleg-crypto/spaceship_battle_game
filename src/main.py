@@ -17,22 +17,15 @@ GREEN = (0, 255, 0)
 """Config read"""
 
 config = cfg.ConfigParser()
+"""Global variables for console and sound status"""
+global sound_muted
+global console_open
 
 
 def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
     images = [enemy_image_path, alien_image_path]
     enemies = [Enemy(screen, random.choice(images)) for _ in range(num_enemies)]
     return enemies
-
-
-def set_difficulty(num_enemies: int) -> int:
-    if MainMenu.set_difficulty == "Hard":
-        num_enemies = random.randint(7, 30)
-    elif MainMenu.set_difficulty == "Normal":
-        num_enemies = random.randint(6, 35)
-    else:
-        num_enemies = random.randint(5, 40)
-    return num_enemies
 
 
 def display_information(font, count, score, render, screen):
@@ -73,7 +66,6 @@ def handle_spaceship_movement(keys, render):
 
 def main():
     sound_muted = False
-    console_open = False
     config.read("config/config.cfg")
     fullscreen = config.getboolean("window", "fullscreen")
     '''''''''''''''''''''''
@@ -81,9 +73,8 @@ def main():
     '''''''''''''''''''''''
     screen_width, screen_height = config.getint("window", "width"), config.getint("window", "height")
     # defined enemies to 0(not spawn)
-    num_enemies = 0
 
-    num_enemies = set_difficulty(num_enemies)
+    num_enemies = 50
 
     pg.init()
     pg.mixer.init()
@@ -134,22 +125,16 @@ def main():
             explosion_group,
             enemies,
             spaceship,
-            config,
-
         ),
         fullscreen,
         enemies=num_enemies,
-
 
     )
     main_menu.draw_menu()
 
 
-def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite, enemy_image_path, alien_image_path,
+def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_image_path, alien_image_path,
               num_enemies, explosion_group, enemies, spaceship, fullscreen):
-    last_shot_time = 0
-    current_time = pg.time.get_ticks()
-    key_delay = 2500
 
     running_program = True
     game_finish = True
@@ -243,7 +228,6 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
         if game_finish:
             handle_spaceship_movement(keys, render)
             if keys[pg.K_SPACE]:
-                last_shot_time = current_time
                 shells.shoot_shell(render.rect.center)
                 if not pg.mixer.get_busy():
                     pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3").play(0, 0, 0)

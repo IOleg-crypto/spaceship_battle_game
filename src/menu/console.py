@@ -13,14 +13,13 @@ ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
 class Console(tk.Tk):
-    def __init__(self, shared_data, screen_height: int, screen_width: int, enemies: int):
+    def __init__(self, sound_muted: bool, screen_height: int, screen_width: int, enemies: int):
         super().__init__()
         self.title("Console")
-        self.sound_muted = False
+        self.sound_muted = sound_muted
         self.screen_height = screen_height
         self.screen_width = screen_width
         self.enemies = enemies
-        self.shared_data = shared_data
         self.number = 0
 
         # Initialize pygame mixer
@@ -66,12 +65,6 @@ class Console(tk.Tk):
         self.suggestion_index = -1  # Tracks the selected suggestion in Listbox
 
         self.deiconify()
-
-    def handle_command(self, cmd: str):
-        if cmd == "sound 0":
-            self.shared_data['sound_muted'] = True
-        elif cmd == "sound 1":
-            self.shared_data['sound_muted'] = False
 
     def execute_command(self, event):
         """Handles execution of entered commands."""
@@ -135,9 +128,8 @@ class Console(tk.Tk):
         self.listbox.delete(0, tk.END)  # Hide suggestions
 
     def toggle_sound(self, mute: bool):
-        """Toggle sound on/off."""
-        self.sound_muted = mute
-        pg.mixer.music.set_volume(0 if self.sound_muted else 1)
+        """Toggle sound on/off and update shared state."""
+        pg.mixer.music.set_volume(0 if mute else 1)
         self.update_sound_state()
 
     def update_sound_state(self):

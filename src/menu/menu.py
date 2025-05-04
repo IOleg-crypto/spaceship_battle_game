@@ -1,7 +1,6 @@
 import pygame_menu as pm
 import configparser as cfg
-import multiprocessing as mp
-from multiprocessing import Manager
+import threading
 import tkinter as tk
 from tkinter import filedialog
 
@@ -41,7 +40,7 @@ def open_filedialog(file_path: str) -> str:
     return file_path
 
 
-def start_console(shared_data, screen_width: int, screen_height: int, enemies: int):
+def start_console(sound_muted: bool, screen_width: int, screen_height: int, enemies: int):
     root = tk.Tk()
     root.withdraw()
 
@@ -50,11 +49,12 @@ def start_console(shared_data, screen_width: int, screen_height: int, enemies: i
 
     root.protocol("WM_DELETE_WINDOW", on_close)
 
-    Console(shared_data, screen_width, screen_height, enemies)  # Передаємо shared_data
+    Console(sound_muted, screen_width, screen_height, enemies)  # Передаємо shared_data
     root.mainloop()
 
 
 class MainMenu:
+
     def __init__(self, sound_muted: bool, width, height, title, screen, start_game_callback, fullscreen: bool, enemies: int):
         self.title = title
         self.width = width
@@ -73,8 +73,14 @@ class MainMenu:
             drawing_mode=pm.baseimage.IMAGE_MODE_FILL
         )
 
-    def set_difficulty(self, difficulty: str):
+    def set_difficulty(self, _label: str, difficulty: str):
         self.difficulty = difficulty
+        if self.difficulty == "Easy":
+            self.enemies = 10
+        elif self.difficulty == "Normal":
+            self.enemies = 25
+        else:
+            self.enemies = 40
         print(f"Difficulty set to: {self.difficulty}")
 
     def draw_menu(self):
@@ -125,14 +131,12 @@ class MainMenu:
                     if event.key == pg.K_2:
                         print("Pressed 2")
                         """Using thread to make window"""
-                        manager = Manager()
-                        shared_data = manager.dict()
-                        shared_data['sound_muted'] = self.sound_muted
-                        console_process = mp.Process(
+                        t = threading.Thread(
                             target=start_console,
-                            args=[shared_data, self.width, self.height, self.enemies]
+                            args=(self.sound_muted, self.width, self.height, self.enemies),
+                            daemon=True
                         )
-                        console_process.start()
+                        t.start()
 
             self.bg.update()
             self.bg.draw()
