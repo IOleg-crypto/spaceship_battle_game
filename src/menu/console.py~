@@ -48,7 +48,7 @@ class Console(tk.Tk):
         self.text_widget.config(state=tk.DISABLED)
 
         # Input field (Entry)
-        self.entry = tk.Entry(self, width=80, bg="gray", fg="white", font=("Jetbrains Mono", 9))
+        self.entry = tk.Entry(self, width=80, bg="gray", fg="white", font=("Courier New", 9))
         self.entry.pack(padx=5, pady=2, fill=tk.X)
         self.entry.bind("<Return>", self.execute_command)
         self.entry.bind("<KeyRelease>", self.show_suggestions)

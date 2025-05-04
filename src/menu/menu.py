@@ -7,6 +7,7 @@ from tkinter import filedialog
 from .background import MovingBackground
 from .console import Console
 
+
 """materials"""
 from src.materials import *
 
@@ -55,7 +56,10 @@ def start_console(sound_muted: bool, screen_width: int, screen_height: int, enem
 
 class MainMenu:
 
-    def __init__(self, sound_muted: bool, width, height, title, screen, start_game_callback, fullscreen: bool, enemies: int):
+    def __init__(self, sound_muted: bool, width: object, height: object, title: object, screen: object,
+                 start_game_callback: object,
+                 fullscreen: bool,
+                 enemies: int) -> object:
         self.title = title
         self.width = width
         self.height = height
@@ -117,7 +121,7 @@ class MainMenu:
         if not self.sound_muted:
             # Load and play the music
             pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
-            pg.mixer.music.play(0)  # Play the music in a loop
+            pg.mixer.music.play(-1)  # Play the music in a loop
 
         # Main menu event loop
         while True:
@@ -162,9 +166,9 @@ class MainMenu:
         self.fullscreen = fullscreen
         """Set whether the game is in fullscreen mode."""
         if not fullscreen:
-            self.screen = pg.display.set_mode((self.width, self.height))
+            self.screen = pg.display.set_mode([self.width, self.height])
         else:
-            self.screen = pg.display.set_mode((self.width, self.height), pg.FULLSCREEN)
+            self.screen = pg.display.set_mode([self.width, self.height], pg.FULLSCREEN)
         self.bg.screen = self.screen
         """Just debug information"""
         print(f"Fullscreen mode is now {'enabled' if self.fullscreen else 'disabled'}.")
