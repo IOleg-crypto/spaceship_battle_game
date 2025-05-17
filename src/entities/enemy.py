@@ -7,7 +7,7 @@ from blast import Explosion, Bullet
 
 
 class Enemy(pg.sprite.Sprite):
-    def __init__(self, screen, image_path):
+    def __init__(self, screen: object, image_path: object) -> object:
         super().__init__()
         self.screen = screen
         self.image = pg.image.load(image_path)

@@ -30,13 +30,15 @@ def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
 
 
 def set_difficulty(num_enemies: int) -> int:
+    spawn_enemies = 0
+    num_enemies = spawn_enemies
     if MainMenu.set_difficulty == "Hard":
-        num_enemies = random.randint(7, 30)
+        spawn_enemies = 50
     elif MainMenu.set_difficulty == "Normal":
-        num_enemies = random.randint(6, 35)
+        spawn_enemies = 20
     else:
-        num_enemies = random.randint(5, 40)
-    return num_enemies
+        spawn_enemies = 15
+    return spawn_enemies
 
 
 def display_information(font, count, score, render, screen):
@@ -76,7 +78,6 @@ def handle_spaceship_movement(keys, render):
 
 
 def main():
-
     config.read("config/config.cfg")
     fullscreen = config.getboolean("window", "fullscreen")
     sound_muted = config.getboolean("sound", "muted")
@@ -139,17 +140,16 @@ def main():
             enemies,
             spaceship,
             config,
-            sound_muted = sound_muted
+            sound_muted=sound_muted
         ),
         fullscreen=fullscreen,
-        enemies=num_enemies,
+        enemies=int(num_enemies),
     )
     main_menu.draw_menu()
 
 
 def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite, enemy_image_path, alien_image_path,
-              num_enemies, explosion_group, enemies, spaceship, fullscreen , sound_muted : bool):
-
+              num_enemies, explosion_group, enemies, spaceship, fullscreen, sound_muted: bool):
     running_program = True
     game_finish = True
 
@@ -287,7 +287,10 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
             text_game_over_rect = text_game_over.get_rect()
             text_game_over_rect.center = screen.get_rect().center
             screen.blit(text_game_over, text_game_over_rect)
-            pg.mixer.Sound("sound/victory/victory.mp3").play(0, 1, 0)
+            """TODO : fix victory sound"""
+
+            pg.mixer.Sound("sound/victory/victory.mp3").play(1, 0, 0)
+            sound_muted = True
             if keys[pg.K_1]:
                 running_program = False
                 main_menu = MainMenu(

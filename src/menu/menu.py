@@ -56,10 +56,10 @@ def start_console(sound_muted: bool, screen_width: int, screen_height: int, enem
 
 class MainMenu:
 
-    def __init__(self, sound_muted: bool, width: object, height: object, title: object, screen: object,
+    def __init__(self, sound_muted: bool, width: int, height: int, title: str, screen,
                  start_game_callback: object,
                  fullscreen: bool,
-                 enemies: int) -> object:
+                 enemies: list):
         self.title = title
         self.width = width
         self.height = height
@@ -76,6 +76,7 @@ class MainMenu:
             image_path=os.path.join("assets/background", "background.jpg"),
             drawing_mode=pm.baseimage.IMAGE_MODE_FILL
         )
+        self.volume = 0
 
     def set_difficulty(self, _label: str, difficulty: str):
         self.difficulty = difficulty
@@ -106,12 +107,20 @@ class MainMenu:
             [('Off', False), ('On', True)],
             onchange=self.set_fullscreen
         )
+        settings_menu.add.range_slider(
+            title="Volume",
+            default=self.volume,
+            range_values=(0.0, 1.0),
+            increment=0.01,
+            onchange=lambda value: pg.mixer.music.set_volume(value)
+        )
         settings_menu.add.selector('Select difficulty:', [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')],
                                    onchange=self.set_difficulty)
 
         settings_menu.add.button("Choose entities", lambda: open_filedialog(spaceship))
 
         settings_menu.add.button('Back', pm.events.BACK)
+
 
         # Add Play and Exit buttons to the main menu
         main_menu.add.button('Play', self.start_game)
@@ -168,7 +177,7 @@ class MainMenu:
         if not fullscreen:
             self.screen = pg.display.set_mode([self.width, self.height])
         else:
-            self.screen = pg.display.set_mode([self.width, self.height], pg.FULLSCREEN)
+            self.screen = pg.display.set_mode((self.width, self.height), pg.FULLSCREEN)
         self.bg.screen = self.screen
         """Just debug information"""
         print(f"Fullscreen mode is now {'enabled' if self.fullscreen else 'disabled'}.")
