@@ -1,4 +1,3 @@
-
 import threading
 import tkinter as tk
 from tkinter import filedialog
@@ -23,6 +22,7 @@ ORANGE = (255, 165, 0)
 PURPLE = (128, 0, 128)
 
 CONFIG_PATH = "config/config.cfg"
+config = cfg.ConfigParser()
 
 
 def open_filedialog(file_path: str) -> str:
@@ -61,7 +61,6 @@ class MainMenu:
                  start_game_callback: object,
                  enemies: int):
         # Load existing configuration or use defaults
-        config = cfg.ConfigParser()
         config.read(CONFIG_PATH)
 
         # Config sections: [window], [sound], [game]
@@ -73,6 +72,8 @@ class MainMenu:
         self.difficulty = config.get("game", "difficulty", fallback="Normal")
         # Apply difficulty to set enemy count
         self.set_difficulty(None, self.difficulty)
+        self.check_play_game = 0
+        """For monitor how many times player go to new game"""
 
         # Store parameters
         self.title = title
@@ -96,7 +97,7 @@ class MainMenu:
 
     def save_config(self):
         """Write current settings back to the configuration file."""
-        config = cfg.ConfigParser()
+
         config.read(CONFIG_PATH)
         # Ensure required sections are present
         if not config.has_section("window"): config.add_section("window")
@@ -117,7 +118,7 @@ class MainMenu:
         """Update game difficulty and adjust enemy count."""
         self.difficulty = difficulty
         if difficulty == "Easy":
-            self.enemies = 10
+            self.enemies = 100
         elif difficulty == "Normal":
             self.enemies = 25
         else:
@@ -136,9 +137,15 @@ class MainMenu:
         settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
 
         # Sound mute/unmute selector
+        list_sound_status = [('Off', False), ('On', True)]
+        """To prevent drop off status of menu music"""
+        difficulty_values = [sound[1] for sound in list_sound_status]
+        saved_sound_status = config.getboolean("sound", "muted")
+        default_index = difficulty_values.index(saved_sound_status) if self.check_play_game == 0 else 1
         settings_menu.add.selector(
             'Mute menu music:',
-            [('Off', False), ('On', True)],
+            list_sound_status,
+            default = default_index,
             onchange=self.set_sound_status
         )
         # Fullscreen toggle selector
@@ -156,12 +163,21 @@ class MainMenu:
             onchange=self.on_volume_change
         )
         self.volume_slider.readonly = self.sound_muted
+        """static list"""
+        list_difficulty = [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')]
+        """
+           Take index to prevent drop off 
+           difficulty in settings after win
+        """
+        difficulty_values = [d[1] for d in list_difficulty]
+        saved_difficulty = config.get("game", "difficulty")
+        default_index = difficulty_values.index(saved_difficulty) if self.check_play_game == 0 else 1
 
-        # Difficulty selector
         settings_menu.add.selector(
             'Select difficulty:',
-            [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')],
-            onchange=self.set_difficulty
+            list_difficulty,
+            default=default_index,
+            onchange=self.set_difficulty,
         )
         # Open file dialog for custom entity images
         settings_menu.add.button(
@@ -206,6 +222,10 @@ class MainMenu:
         """Start the game and handle music pause/unpause."""
         self.screen.fill(BLACK)
         pg.display.update()
+
+        """Check how many times player select new game."""
+        self.check_play_game += 1
+        print(f"Start new game : ${self.check_play_game}")
         self.start_game_callback()
         if self.sound_muted:
             pg.mixer.music.pause()
