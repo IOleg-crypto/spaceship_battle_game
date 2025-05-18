@@ -1,5 +1,4 @@
 """main.py - main game functionality"""
-from typing import List
 
 from menu import MainMenu
 from materials import *
@@ -80,15 +79,15 @@ def handle_spaceship_movement(keys, render):
 def main():
     config.read("config/config.cfg")
     fullscreen = config.getboolean("window", "fullscreen")
-    sound_muted = config.getboolean("sound", "muted")
+    sound_muted: bool = config.getboolean("sound", "muted")
     '''''''''''''''''''''''
         Screen Resolution
     '''''''''''''''''''''''
     screen_width, screen_height = config.getint("window", "width"), config.getint("window", "height")
     # defined enemies to 0(not spawn)
-    num_enemies = 0
+    enemies = 0
 
-    num_enemies = set_difficulty(num_enemies)
+    spawn_enemies = set_difficulty(enemies)
 
     pg.init()
     pg.mixer.init()
@@ -113,42 +112,41 @@ def main():
     # Number of enemies to create
     enemies = [
         Enemy(screen, random.choice([alien_sprite_path, enemy_sprite_path]))
-        for _ in range(num_enemies)
+        for _ in range(spawn_enemies)
     ]
     for enemy in enemies:
         enemy_sprite.add(enemy)
         all_sprites.add(enemy)
 
     main_menu = MainMenu(
-        sound_muted=sound_muted,
+
         width=screen_width,
         height=screen_height,
         title="Spaceship Battle",
         screen=screen,
+
         start_game_callback=lambda: game_loop(
             screen,
             clock,
             render,
             all_sprites,
             shells,
-            load_enemy,
             enemy_sprite,
             enemy_sprite_path,
             alien_sprite_path,
-            num_enemies,
+            spawn_enemies,
             explosion_group,
             enemies,
             spaceship,
             config,
             sound_muted=sound_muted
         ),
-        fullscreen=fullscreen,
-        enemies=int(num_enemies),
+        enemies=spawn_enemies,
     )
     main_menu.draw_menu()
 
 
-def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprite, enemy_image_path, alien_image_path,
+def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_image_path, alien_image_path,
               num_enemies, explosion_group, enemies, spaceship, fullscreen, sound_muted: bool):
     running_program = True
     game_finish = True
@@ -178,13 +176,11 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_1:
                     main_menu = MainMenu(
-                        sound_muted=sound_muted,
                         width=screen.get_width(),
                         height=screen.get_height(),
                         title="Spaceship Battle",
                         screen=screen,
                         start_game_callback=lambda: main(),
-                        fullscreen=fullscreen,
                         enemies=enemies
                     )
                     main_menu.draw_menu()
@@ -225,7 +221,6 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
                                 render,
                                 all_sprites,
                                 shells,
-                                load_enemy,
                                 enemy_sprite,
                                 enemy_image_path,
                                 alien_image_path,
@@ -279,6 +274,7 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
 
         if len(enemy_sprite) == 0:
             game_finish = False
+
             text_finish = font.render("You won! Press 1 to exit", True, WHITE)
             text_game_over = font.render("", True, WHITE)  # to prevent over the text
             text_finish_rect = text_finish.get_rect()
@@ -289,7 +285,7 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
             screen.blit(text_game_over, text_game_over_rect)
             """TODO : fix victory sound"""
 
-            pg.mixer.Sound("sound/victory/victory.mp3").play(1, 0, 0)
+            pg.mixer.Sound("sound/victory/victory.mp3").play(0, 0, 0)
             sound_muted = True
             if keys[pg.K_1]:
                 running_program = False
@@ -331,5 +327,6 @@ def game_loop(screen, clock, render, all_sprites, shells, main_menu, enemy_sprit
     pg.quit()
 
 
+"""Start game , default shit"""
 if __name__ == "__main__":
     main()
