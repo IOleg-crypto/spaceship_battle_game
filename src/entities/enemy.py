@@ -11,9 +11,9 @@ class Enemy(pg.sprite.Sprite):
         super().__init__()
         self.screen = screen
         self.image = pg.image.load(image_path)
-        self.image = pg.transform.scale(self.image, (self.image.get_width() // 12, self.image.get_height() // 12))
+        self.image = pg.transform.scale(self.image, (self.image.get_width() // 13, self.image.get_height() // 13))
         self.rect = self.image.get_rect(
-            center=(int(random.randint(5, 400)), int(random.randint(6, 400))))
+            center=(int(random.randint(5, 350)), int(random.randint(6, 400))))
         self.speed = [3, 0]  # Move horizontally with a speed of 2
         self.shoot_delay = 3000  # milliseconds
         self.last_shot = pg.time.get_ticks()
@@ -21,22 +21,25 @@ class Enemy(pg.sprite.Sprite):
 
     def update(self):
         if self.image:
-            self.rect.x += self.speed[0]
             self.detect_screen_bounds()
-
+            self.rect.x += self.speed[0]
 
     """
     Detect screen bounds to prevent problem(enemy ship spawn and don`t move. Cause he stuck!!!
     """
+
     def detect_screen_bounds(self):
         """
         if self.rect.x + 10 >= self.screen.get_width() - self.rect.width or self.rect.x <= 0:
             self.speed[0] = -self.speed[0]  # Reverse direction
         """
-        if self.rect.x + 10 >= self.screen.get_width() - self.rect.width - 1:
+        if self.rect.x + 20 >= self.screen.get_width() - self.rect.width - 1:
             self.speed[0] = -self.speed[0]
 
-
+        if self.rect.x <= 0:
+            self.speed[0] = -self.speed[0]
+            """To prevent stuck"""
+            self.rect.x = 2
 
     def destroy(self):
         explosion = Explosion(self.rect.centerx, self.rect.centery)

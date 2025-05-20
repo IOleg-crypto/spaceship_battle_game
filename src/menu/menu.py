@@ -126,6 +126,9 @@ class MainMenu:
         print(f"Difficulty set to: {difficulty}")
         self.save_config()
 
+    def get_difficulty(self):
+        return self.difficulty
+
     def draw_menu(self):
         """Draw the main and settings menus and handle events."""
         pg.mixer.init()
@@ -222,7 +225,6 @@ class MainMenu:
         """Start the game and handle music pause/unpause."""
         self.screen.fill(BLACK)
         pg.display.update()
-
         """Check how many times player select new game."""
         self.check_play_game += 1
         print(f"Start new game : ${self.check_play_game}")
