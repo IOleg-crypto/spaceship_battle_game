@@ -7,7 +7,7 @@ from blast import Explosion, Bullet
 
 
 class Enemy(pg.sprite.Sprite):
-    def __init__(self, screen: object, image_path: object) -> object:
+    def __init__(self, screen: object, image_path: str):
         super().__init__()
         self.screen = screen
         self.image = pg.image.load(image_path)
@@ -24,9 +24,19 @@ class Enemy(pg.sprite.Sprite):
             self.rect.x += self.speed[0]
             self.detect_screen_bounds()
 
+
+    """
+    Detect screen bounds to prevent problem(enemy ship spawn and don`t move. Cause he stuck!!!
+    """
     def detect_screen_bounds(self):
+        """
         if self.rect.x + 10 >= self.screen.get_width() - self.rect.width or self.rect.x <= 0:
             self.speed[0] = -self.speed[0]  # Reverse direction
+        """
+        if self.rect.x + 10 >= self.screen.get_width() - self.rect.width - 1:
+            self.speed[0] = -self.speed[0]
+
+
 
     def destroy(self):
         explosion = Explosion(self.rect.centerx, self.rect.centery)
