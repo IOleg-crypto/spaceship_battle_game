@@ -7,6 +7,11 @@ from entities import Enemy
 from entities import RenderSpaceShip
 import configparser as cfg
 
+import tkinter as tk
+from tkinter import messagebox
+
+from ResolutionException import ResolutionException
+
 import random
 
 global sound_muted
@@ -83,9 +88,21 @@ def main():
     '''''''''''''''''''''''
         Screen Resolution
     '''''''''''''''''''''''
-    screen_width, screen_height = config.getint("window", "width"), config.getint("window", "height")
+    try:
+        screen_width = config.getint("window", "width")
+        screen_height = config.getint("window", "height")
+        if screen_width < 640 or screen_height < 480:
+            raise ResolutionException("Selected resolution is too small", 640, 480)
+    except ResolutionException as e:
+        root = tk.Tk()
+        root.withdraw()
+        messagebox.showerror("Error", str(e))
+        return -1
+
     # defined enemies to 0(not spawn)
     enemies = 0
+
+
 
     spawn_enemies = set_difficulty(enemies)
 
