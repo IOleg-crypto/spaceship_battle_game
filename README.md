@@ -64,11 +64,12 @@ spaceship_battle_game/
 ## 📸 Screenshot
 **Game also supports _config.cfg_**
 
-<img src="img_1.png" alt="Game Screenshot" width="600"/>
+<img src="img.png" alt="Game Screenshot" width="600"/>
 
 **and Console** _just click_ `2`
 
 <img src="img_2.png" alt="Game Screenshot" width="600"/>
+
 
 ---
 

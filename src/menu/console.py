@@ -39,10 +39,10 @@ class Console(tk.Tk):
 
         # Show startup text
         startup_text = (
-            "SpaceShip Battle! Build 1.0\n"
+            "SpaceShip Battle! Build 1.2\n"
             "Author: I#Oleg\n"
-            "Version: 1.1\n"
-            "Date compiled: 04.05.2025\n"
+            "Version: 1.2\n"
+            "Date compiled: 21.05.2025\n"
         )
         self.text_widget.insert(tk.END, startup_text)
         self.text_widget.config(state=tk.DISABLED)
@@ -153,8 +153,8 @@ class Console(tk.Tk):
         startup_text = (
             "SpaceShip Battle! Build 1.0\n"
             "Author: I#Oleg\n"
-            "Version: 1.1\n"
-            "Date compiled: 04.05.2025\n"
+            "Version: 1.2\n"
+            "Date compiled: 21.05.2025\n"
         )
         self.text_widget.insert(tk.END, startup_text)
         self.text_widget.config(state=tk.DISABLED)
