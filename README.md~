@@ -54,9 +54,9 @@ python main.py
 ```
 spaceship_battle_game/
 ├── assets/             # Images, sounds, fonts
-├── src/               # Main game logic
+├── core/               # Main game logic
+├── tests/              # Tests for functions
 ├── main.py             # Entry point
-├── ResolutionException.py # Exception to prevent user enter wrong resolution
 ├── requirements.txt    # Dependencies
 └── README.md           # Documentation
 ```
