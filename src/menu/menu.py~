@@ -279,7 +279,7 @@ class MainMenu:
         return fullscreen
 
     def choose_spaceship(self):
-        selected = open_filedialog("")
+        selected = open_filedialog(self.spaceship_path)
         if selected:
             self.spaceship_path = selected
             print(f"Spaceship image set to: {self.spaceship_path}")

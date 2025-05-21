@@ -1,16 +1,19 @@
 """main.py - main game functionality"""
 
+import pygame as pg
+
 """Stucture of game"""
-from menu import MainMenu
-from materials import *
+import configparser as cfg
+
 from blast import RenderSpaceShipShells, Explosion
 from entities import Enemy
 from entities import RenderSpaceShip
-import configparser as cfg
+from materials import *
+from menu import MainMenu
 
 """For exception"""
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, font
 
 from ResolutionException import ResolutionException
 
@@ -49,6 +52,7 @@ def set_difficulty(num_enemies: int, screen) -> int:
         if screen[0] > 800 or screen[1] > 600:
             num_enemies = 60
     return num_enemies
+
 
 
 def display_information(font, count, score, render, screen):
@@ -167,8 +171,8 @@ def main():
     main_menu.draw_menu()
 
 
-def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_image_path, alien_image_path,
-              num_enemies, explosion_group, enemies, spaceship, fullscreen, sound_muted: bool):
+def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_image_path: str, alien_image_path: str,
+              num_enemies: int, explosion_group, enemies, spaceship, fullscreen, sound_muted: bool):
     """variable for game loop"""
     running_program = True
     game_finish = True
@@ -176,7 +180,7 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
     score = 0
     render.health = 100
 
-    load_enemy = Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
+    Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
     all_sprites = pg.sprite.Group(render)
     enemy_sprite = pg.sprite.Group()
     enemy_shells = pg.sprite.Group()
@@ -263,7 +267,8 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
             if keys[pg.K_SPACE]:
                 shells.shoot_shell(render.rect.center)
                 if not pg.mixer.get_busy() or sound_muted:
-                    pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3").play(0, 0, 0)
+                    shoot_sound = pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3")
+                    shoot_sound.play()
                 count += 1
 
         all_sprites.update()
@@ -293,16 +298,27 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
                     explosion_group.add(explosion)
                     all_sprites.add(explosion)
                 score += 1
+
+        collisions = pg.sprite.groupcollide(shells, enemy_shells, True, True)
+        for sprite, shells_hit in collisions.items():
+            for spaceship_shell in shells_hit:
+                # Створення вибуху на місці попадання
+                explosion = Explosion(spaceship_shell.rect.x, spaceship_shell.rect.y)
+                explosion_group.add(explosion)
+                all_sprites.add(explosion)
+
         victory_sound_played = False
 
-        if len(enemy_sprite) == 0 and not victory_sound_played:
-            pg.mixer.Sound("sound/victory/victory.mp3").play(0, 0, 0)
+        enemies_left = len(enemy_sprite)
+        if enemies_left == 0 and not victory_sound_played:
+            victory_sound = pg.mixer.Sound("sound/victory/victory.mp3")
+            victory_sound.play()
             victory_sound_played = True
 
-        if len(enemy_sprite) == 0:
+        if enemies_left == 0:
             game_finish = False
             text_finish = font.render("You won! Press 1 to exit", True, WHITE)
-            text_game_over = font.render("", True, WHITE)  # to prevent over the text
+            text_game_over = font.render(None, True, WHITE)  # to prevent over the text
             text_finish_rect = text_finish.get_rect()
             text_finish_rect.center = screen.get_rect().center
             screen.blit(text_finish, text_finish_rect)
@@ -348,6 +364,9 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
                 )
                 main_menu.draw_menu()
 
+        fps = str(int(clock.get_fps()))
+        fps_text = font.render(f"FPS: {fps}", True, pg.Color("white"))
+        screen.blit(fps_text, (10, 40))
         pg.display.flip()
         explosion_group.update()
         pg.display.flip()
