@@ -3,7 +3,7 @@
 """Stucture of game"""
 from menu import MainMenu
 from materials import *
-from blast import RenderSpaceShipShells
+from blast import RenderSpaceShipShells, Explosion
 from entities import Enemy
 from entities import RenderSpaceShip
 import configparser as cfg
@@ -121,9 +121,9 @@ def main():
 
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
 
-    render = RenderSpaceShip(spaceship_pos, spaceship)
+    spaceship_sprite = RenderSpaceShip(spaceship_pos, spaceship)
     load_enemy = Enemy(screen, enemy_sprite_path)
-    all_sprites = pg.sprite.Group(render)
+    all_sprites = pg.sprite.Group(spaceship_sprite)
     enemy_sprite = pg.sprite.Group(load_enemy)
     shells = RenderSpaceShipShells(shell_spaceship)
 
@@ -149,7 +149,7 @@ def main():
         start_game_callback=lambda: game_loop(
             screen,
             clock,
-            render,
+            spaceship_sprite,
             all_sprites,
             shells,
             enemy_sprite,
@@ -293,10 +293,14 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
                     explosion_group.add(explosion)
                     all_sprites.add(explosion)
                 score += 1
+        victory_sound_played = False
+
+        if len(enemy_sprite) == 0 and not victory_sound_played:
+            pg.mixer.Sound("sound/victory/victory.mp3").play(0, 0, 0)
+            victory_sound_played = True
 
         if len(enemy_sprite) == 0:
             game_finish = False
-
             text_finish = font.render("You won! Press 1 to exit", True, WHITE)
             text_game_over = font.render("", True, WHITE)  # to prevent over the text
             text_finish_rect = text_finish.get_rect()
@@ -305,9 +309,12 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
             text_game_over_rect = text_game_over.get_rect()
             text_game_over_rect.center = screen.get_rect().center
             screen.blit(text_game_over, text_game_over_rect)
-            """TODO : fix victory sound"""
-
-            pg.mixer.Sound("sound/victory/victory.mp3").play(0, 0, 0)
+            "Disable damage after game over"
+            for bullet in enemy_shells:
+                explosion = Explosion(bullet.rect.centerx, bullet.rect.centery)
+                explosion_group.add(explosion)
+                all_sprites.add(explosion)
+                bullet.kill()
             sound_muted = True
             if keys[pg.K_1]:
                 running_program = False
@@ -341,7 +348,7 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
                 )
                 main_menu.draw_menu()
 
-        pg.display.update()
+        pg.display.flip()
         explosion_group.update()
         pg.display.flip()
         clock.tick(60)

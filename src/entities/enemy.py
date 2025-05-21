@@ -29,17 +29,13 @@ class Enemy(pg.sprite.Sprite):
     """
 
     def detect_screen_bounds(self):
-        """
-        if self.rect.x + 10 >= self.screen.get_width() - self.rect.width or self.rect.x <= 0:
-            self.speed[0] = -self.speed[0]  # Reverse direction
-        """
         if self.rect.x + 20 >= self.screen.get_width() - self.rect.width - 1:
             self.speed[0] = -self.speed[0]
 
         if self.rect.x <= 0:
             self.speed[0] = -self.speed[0]
             """To prevent stuck"""
-            self.rect.x = 2
+            self.rect.x = 2 # push enemy ship to the right
 
     def destroy(self):
         explosion = Explosion(self.rect.centerx, self.rect.centery)
