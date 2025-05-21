@@ -54,17 +54,21 @@ python main.py
 ```
 spaceship_battle_game/
 ├── assets/             # Images, sounds, fonts
-├── core/               # Main game logic
-├── tests/              # Tests for functions
+├── src/               # Main game logic
 ├── main.py             # Entry point
+├── ResolutionException.py # Exception to prevent user enter wrong resolution
 ├── requirements.txt    # Dependencies
 └── README.md           # Documentation
 ```
 
-
 ## 📸 Screenshot
+**Game also supports _config.cfg_**
 
 <img src="img_1.png" alt="Game Screenshot" width="600"/>
+
+**and Console** 
+
+<img src="img_2.png" alt="Game Screenshot" width="600"/>
 
 ---
 
