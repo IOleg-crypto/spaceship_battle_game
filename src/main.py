@@ -144,12 +144,10 @@ def main():
         all_sprites.add(enemy)
 
     main_menu = MainMenu(
-
         width=screen_width,
         height=screen_height,
         title="Spaceship Battle",
         screen=screen,
-
         start_game_callback=lambda: game_loop(
             screen,
             clock,
