@@ -63,13 +63,26 @@ spaceship_battle_game/
 
 ## 📸 Screenshot
 **Game also supports _config.cfg_**
+```cfg
+[config]
+version = 1
 
+[window]
+width = 1280
+height = 720
+fullscreen = True
 
-![Game Screenshot](img_1.png)
+[sound]
+muted = True
+volume = 1.0
+
+[game]
+difficulty = Hard
+```
 
 **and Console** _just click_ `2`
 
-![Game Screenshot](img_2.png)
+[![2025-05-21-120936.png](https://i.postimg.cc/rwFmdgcK/2025-05-21-120936.png)](https://postimg.cc/JGvmvNsL)
 
 
 ---
