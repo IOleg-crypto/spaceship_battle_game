@@ -4,7 +4,6 @@ from menu import MainMenu
 
 """ Assets for game """
 
-
 programIcon = pg.image.load(os.path.join("assets/icon", "icon.png"))
 spaceship = pg.image.load(
     MainMenu.spaceship_path if MainMenu.spaceship_path else os.path.join("assets/spaceships", "spaceship2d.png")

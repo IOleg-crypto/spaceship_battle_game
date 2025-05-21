@@ -116,8 +116,8 @@ def main():
 
     pg.init()
     pg.mixer.init()
-    flags = DOUBLEBUF
-    screen = pg.display.set_mode((screen_width, screen_height), flags)
+
+    screen = pg.display.set_mode((screen_width, screen_height))
     clock = pg.time.Clock()
     pg.display.set_caption("Spaceship Battle!")
 
