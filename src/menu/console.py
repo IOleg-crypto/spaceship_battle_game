@@ -5,6 +5,8 @@ import tkinter as tk
 import configparser as cfg
 import ctypes
 
+
+
 config = cfg.ConfigParser()
 config.read("config/config.cfg")
 
@@ -12,7 +14,7 @@ config.read("config/config.cfg")
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
-class Console(tk.Tk):
+class Console(tk.Toplevel):
     def __init__(self, sound_muted: bool, screen_height: int, screen_width: int, enemies: int):
         super().__init__()
         self.title("Console")
@@ -21,6 +23,8 @@ class Console(tk.Tk):
         self.screen_width = screen_width
         self.enemies = enemies
         self.number = 0
+        """To take control on main menu"""
+
 
         # Initialize pygame mixer
         pg.init()
@@ -128,11 +132,14 @@ class Console(tk.Tk):
         self.listbox.delete(0, tk.END)  # Hide suggestions
 
     def toggle_sound(self, mute: bool):
-        """Toggle sound on/off and update shared state."""
-        #update flag
+        """Toggle sound on/off and update shared state and config."""
         self.sound_muted = mute
         pg.mixer.music.set_volume(0 if mute else 1)
-          # take str to console
+        # Update config and save to file
+        config.set("sound", "muted", str(mute))
+        with open("config/config.cfg", "w") as configfile:
+            config.write(configfile)
+
         return f"Sound {'muted' if mute else 'unmuted'}"
 
     def update_sound_state(self):

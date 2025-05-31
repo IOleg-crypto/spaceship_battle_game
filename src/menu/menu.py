@@ -1,15 +1,17 @@
+import multiprocessing
 import threading
 import tkinter as tk
 from tkinter import filedialog
-
-import os
-import pygame as pg
+import multiprocessing as mp
 import pygame_menu as pm
 import configparser as cfg
+import os
 
 from .background import MovingBackground
 from .console import Console
 from src.materials import *  # your game materials
+
+"""To take console command and change music off/on selector"""
 
 # Define color constants (if needed)
 RED = (255, 0, 0)
@@ -26,6 +28,36 @@ PURPLE = (128, 0, 128)
 CONFIG_PATH = "config/config.cfg"
 config = cfg.ConfigParser()
 
+"""Fix create many console window"""
+def console_process(sound_muted: bool, width: int, height: int, enemies: int):
+    """
+    Функція, яку буде запускати окремий процес.
+    Створює своє власне Tk-вікно і запускає Console.mainloop().
+    """
+    # Кожен процес має свій окремий екземпляр Tk
+    root = tk.Tk()
+    root.title("Console")
+    root.iconify()
+    # Властивості root за потреби (іконка, позиціювання тощо)
+    # Ми не приховуємо головне вікно, бо це вже окремий процес
+    # При закритті вікна просто завершуємо цикл роботи Tk
+    def on_close():
+        root.destroy()
+
+    root.protocol("WM_DELETE_WINDOW", on_close)
+
+    console = Console(
+        sound_muted=sound_muted,
+        screen_width=width,
+        screen_height=height,
+        enemies=enemies,
+    )
+    # Якщо Console має власний метод on_close, можна перепризначити:
+    console.protocol("WM_DELETE_WINDOW", on_close)
+
+    # Запускаємо головний цикл обробки подій лише в цьому процесі
+    root.mainloop()
+
 
 def open_filedialog(file_path: str):
     """Open file dialog to select an entity image."""
@@ -41,25 +73,17 @@ def open_filedialog(file_path: str):
     return file_path
 
 
-def start_console(sound_muted: bool, screen_width: int, screen_height: int, enemies: int):
-    """Launch the game console window in a separate thread."""
-    root = tk.Tk()
-    root.withdraw()
-
-    def on_close():
-        root.destroy()
-
-    root.protocol("WM_DELETE_WINDOW", on_close)
-    Console(sound_muted, screen_width, screen_height, enemies)
-    root.mainloop()
-
-
 class MainMenu:
     """Main menu class with settings persistence."""
 
     # path to choose spaceship
-
     spaceship_path = None
+    """Add status music as variable that holds selector"""
+    status_music = None
+    """Variable that holds(bool) fullscreen status"""
+    fullscreen_status = None
+    """To prevent problem: user can create many console window"""
+    createdConsole = 0
 
     def __init__(self,
                  width: int,
@@ -80,10 +104,20 @@ class MainMenu:
         self.difficulty = config.get("game", "difficulty", fallback="Normal")
         # Apply difficulty to set enemy count
         self.set_difficulty(None, self.difficulty)
-        """For monitor how many times player go to new game"""
+        """
+            For monitor how many times player go to new game
+            to prevent drop off of settings in game
+        """
         self.check_play_game = 0
         """Custom path to choose spaceship"""
         self.spaceship_path = None
+        """Add status music as variable that holds selector"""
+        self.status_music = None
+        """Variable that holds(bool) fullscreen status"""
+        self.fullscreen_status = None
+        """To prevent problem: user can create many console window"""
+        self.createdConsole = 0
+        self.console_process = None
 
         # Store parameters
         self.title = title
@@ -139,6 +173,38 @@ class MainMenu:
     def get_difficulty(self):
         return self.difficulty
 
+
+
+    def start_console(self):
+        """
+        Запускає консоль у окремому процесі.
+        Якщо вже є запущений процес, не створює нового.
+        Після завершення процесу автоматично скидає createdConsole.
+        """
+        # Якщо флаг = 1, але процес уже завершився, збросимо флаг
+        if self.createdConsole == 1:
+            if self.console_process is not None and not self.console_process.is_alive():
+                # Процес консолі завершився, можна знову запускати
+                self.createdConsole = 0
+                self.console_process = None
+
+        # Якщо ще немає відкритої консолі, створюємо процес
+        if self.createdConsole == 0:
+            self.createdConsole = 1
+            p = mp.Process(
+                target=console_process,
+                args=(
+                    self.sound_muted,
+                    self.width,
+                    self.height,
+                    self.enemies
+                ),
+                daemon=True
+            )
+            p.start()
+            self.console_process = p
+
+
     def draw_menu(self):
         """Draw the main and settings menus and handle events."""
         pg.mixer.init()
@@ -155,14 +221,14 @@ class MainMenu:
         difficulty_values = [sound[1] for sound in list_sound_status]
         saved_sound_status = config.getboolean("sound", "muted")
         default_index = difficulty_values.index(saved_sound_status) if self.check_play_game == 0 else 1
-        settings_menu.add.selector(
+        self.status_music = settings_menu.add.selector(
             'Mute menu music:',
             list_sound_status,
             default=default_index,
             onchange=self.set_sound_status
         )
         # Fullscreen toggle selector
-        settings_menu.add.selector(
+        self.fullscreen_status = settings_menu.add.selector(
             'Fullscreen:',
             [('Off', False), ('On', True)],
             onchange=self.set_fullscreen
@@ -219,11 +285,7 @@ class MainMenu:
                     pg.quit()
                     exit()
                 if event.type == pg.KEYDOWN and event.key == pg.K_2:
-                    threading.Thread(
-                        target=start_console,
-                        args=(self.sound_muted, self.width, self.height, self.enemies),
-                        daemon=True
-                    ).start()
+                    self.start_console()
 
             self.bg.update()
             self.bg.draw()

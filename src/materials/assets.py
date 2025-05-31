@@ -1,12 +1,11 @@
 import os
 import pygame as pg
-from menu import MainMenu
 
 """ Assets for game """
-
+"""MainMenu.spaceship_path if MainMenu.spaceship_path else"""
 programIcon = pg.image.load(os.path.join("assets/icon", "icon.png"))
 spaceship = pg.image.load(
-    MainMenu.spaceship_path if MainMenu.spaceship_path else os.path.join("assets/spaceships", "spaceship2d.png")
+     os.path.join("assets/spaceships", "spaceship2d.png")
 )
 shell_spaceship = pg.image.load(os.path.join("assets/shells", "shell.png"))
 enemy_sprite_path = os.path.join("assets/spaceships", "spaceship2d_2.png")

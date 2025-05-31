@@ -39,7 +39,7 @@ class RenderSpaceShip(pg.sprite.Sprite):
 
     def take_damage(self, amount):
         if amount == 0:
-            return
+            return None
         self.health -= amount  # Correctly reduce health by the damage amount
         self.health = max(self.health, 0)  # Ensure health doesn't go below 0
 

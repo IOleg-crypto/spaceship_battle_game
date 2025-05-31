@@ -2,7 +2,7 @@
 
 from pygame.locals import *
 
-"""Stucture of game"""
+"""Structure of game"""
 import configparser as cfg
 
 from blast import RenderSpaceShipShells, Explosion
@@ -13,7 +13,7 @@ from menu import MainMenu
 
 """For exception"""
 import tkinter as tk
-from tkinter import messagebox, font
+from tkinter import messagebox
 
 from ResolutionException import ResolutionException
 
@@ -73,6 +73,10 @@ def display_information(font, count, score, render, screen):
     screen.blit(text_score, text_score_rect)
     screen.blit(text_health, text_health_rect)
 
+def fps_counter(screen , clock):
+    fps = str(int(clock.get_fps()))
+    fps_text = font.render(f"FPS: {fps}", True, pg.Color("white"))
+    screen.blit(fps_text, (10, 40))
 
 def handle_spaceship_movement(keys, render):
     movement = {
@@ -167,11 +171,13 @@ def main():
         enemies=spawn_enemies,
     )
     main_menu.draw_menu()
+    return None
 
 
 def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_image_path: str, alien_image_path: str,
-              num_enemies: int, explosion_group, enemies, spaceship, fullscreen, sound_muted: bool):
+              num_enemies: int, explosion_group, count_enemies, spaceship, fullscreen, sound_muted: bool):
     """variable for game loop"""
+    global font
     running_program = True
     game_finish = True
     count = 0
@@ -185,9 +191,9 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
     spaceship_sprite = pg.sprite.Group()
     spaceship_sprite.add(render)
 
-    enemies: list[Enemy] = create_enemies(screen, enemy_image_path, alien_image_path, num_enemies)
+    count_enemies: list[Enemy] = create_enemies(screen, enemy_image_path, alien_image_path, num_enemies)
     """Spawn enemies"""
-    for enemy in enemies:
+    for enemy in count_enemies:
         enemy_sprite.add(enemy)
         all_sprites.add(enemy)
 
@@ -204,7 +210,7 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
                         title="Spaceship Battle",
                         screen=screen,
                         start_game_callback=lambda: main(),
-                        enemies=enemies
+                        enemies=len(count_enemies)
                     )
                     main_menu.draw_menu()
 
@@ -249,7 +255,7 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
                                 alien_image_path,
                                 num_enemies,
                                 explosion_group,
-                                enemies,
+                                count_enemies,
                                 spaceship,
                                 fullscreen=fullscreen
                             ),
@@ -269,6 +275,8 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
                     shoot_sound.play()
                 count += 1
 
+
+
         all_sprites.update()
         shells.update()
         enemy_sprite.update()
@@ -286,6 +294,11 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
         shells.draw(screen)
         explosion_group.draw(screen)
 
+        keys = pg.key.get_pressed()
+        if keys[pg.K_2]:
+           fps_counter(screen=screen ,clock=clock)
+
+
         # Handle enemy destruction and spaceship health reduction
         for enemy in enemy_sprite:
             if pg.sprite.groupcollide(
@@ -300,18 +313,16 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
         collisions = pg.sprite.groupcollide(shells, enemy_shells, True, True)
         for sprite, shells_hit in collisions.items():
             for spaceship_shell in shells_hit:
-                # Створення вибуху на місці попадання
+                """Create explosion at correct coords"""
                 explosion = Explosion(spaceship_shell.rect.x, spaceship_shell.rect.y)
                 explosion_group.add(explosion)
                 all_sprites.add(explosion)
 
-        victory_sound_played = False
 
         enemies_left = len(enemy_sprite)
-        if enemies_left == 0 and not victory_sound_played:
+        if enemies_left == 0:
             victory_sound = pg.mixer.Sound("sound/victory/victory.mp3")
             victory_sound.play()
-            victory_sound_played = True
 
         if enemies_left == 0:
             game_finish = False
@@ -329,6 +340,7 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
                 explosion_group.add(explosion)
                 all_sprites.add(explosion)
                 bullet.kill()
+
             sound_muted = True
             if keys[pg.K_1]:
                 running_program = False
@@ -362,10 +374,8 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
                 )
                 main_menu.draw_menu()
 
-        fps = str(int(clock.get_fps()))
-        fps_text = font.render(f"FPS: {fps}", True, pg.Color("white"))
-        screen.blit(fps_text, (10, 40))
-        pg.display.flip()
+
+
         explosion_group.update()
         pg.display.flip()
         clock.tick(60)
