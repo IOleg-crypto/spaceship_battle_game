@@ -210,7 +210,8 @@ def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_im
                         title="Spaceship Battle",
                         screen=screen,
                         start_game_callback=lambda: main(),
-                        enemies=len(count_enemies) # Making crash with multithreading
+                        # Making crash with multithreading - given argument without len
+                        enemies=len(count_enemies)
                     )
                     main_menu.draw_menu()
 
