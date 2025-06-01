@@ -30,17 +30,10 @@ config = cfg.ConfigParser()
 
 """Fix create many console window"""
 def console_process(sound_muted: bool, width: int, height: int, enemies: int):
-    """
-    Функція, яку буде запускати окремий процес.
-    Створює своє власне Tk-вікно і запускає Console.mainloop().
-    """
-    # Кожен процес має свій окремий екземпляр Tk
     root = tk.Tk()
     root.title("Console")
     root.iconify()
-    # Властивості root за потреби (іконка, позиціювання тощо)
-    # Ми не приховуємо головне вікно, бо це вже окремий процес
-    # При закритті вікна просто завершуємо цикл роботи Tk
+
     def on_close():
         root.destroy()
 
@@ -52,10 +45,9 @@ def console_process(sound_muted: bool, width: int, height: int, enemies: int):
         screen_height=height,
         enemies=enemies,
     )
-    # Якщо Console має власний метод on_close, можна перепризначити:
+
     console.protocol("WM_DELETE_WINDOW", on_close)
 
-    # Запускаємо головний цикл обробки подій лише в цьому процесі
     root.mainloop()
 
 
