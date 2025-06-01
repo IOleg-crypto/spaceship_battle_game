@@ -302,7 +302,9 @@ class MainMenu:
             pg.mixer.music.unpause()
 
     def set_sound_status(self, _label, mute: bool) -> bool:
+        """Toggle mute state, update music playback and slider lock."""
         self.sound_muted = mute
+
         if self.sound_muted:
             pg.mixer.music.pause()
         else:
@@ -314,10 +316,11 @@ class MainMenu:
         if self.volume_slider:
             self.volume_slider.readonly = self.sound_muted
 
-        # Зберігаємо в конфіг
+        # Зберігаємо у конфіг
         self.save_config()
 
-        # Оновлюємо глобальну default_index, щоби консоль теж знала про зміну
+        # --- ОНОВЛЮЄМО ГЛОБАЛЬНУ default_index ---
+        # Тут ми повторно імпортуємо, щоб змінити саме ту змінну, що в console.py
         from .console import default_index as console_default_index
         console_default_index = 1 if mute else 0
 

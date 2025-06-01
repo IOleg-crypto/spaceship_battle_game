@@ -97,7 +97,6 @@ def handle_spaceship_movement(keys, render):
 
 def main():
     config.read("config/config.cfg")
-    fullscreen = config.getboolean("window", "fullscreen")
     sound_muted: bool = config.getboolean("sound", "muted")
     '''''''''''''''''''''''
         Screen Resolution

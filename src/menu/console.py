@@ -7,11 +7,15 @@ import ctypes
 
 
 
+
 config = cfg.ConfigParser()
 config.read("config/config.cfg")
 
 """For DPI"""
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
+
+
+default_index = 0
 
 
 class Console(tk.Toplevel):
@@ -23,7 +27,10 @@ class Console(tk.Toplevel):
         self.screen_width = screen_width
         self.enemies = enemies
         self.number = 0
+
         """To take control on main menu"""
+        global default_index
+        default_index = 1 if sound_muted else 0
 
 
         # Initialize pygame mixer
@@ -43,10 +50,10 @@ class Console(tk.Toplevel):
 
         # Show startup text
         startup_text = (
-            "SpaceShip Battle! Build 1.2\n"
+            "SpaceShip Battle! Build 1.3\n"
             "Author: I#Oleg\n"
-            "Version: 1.2\n"
-            "Date compiled: 21.05.2025\n"
+            "Version: 1.3\n"
+            "Date compiled: 01.06.2025\n"
         )
         self.text_widget.insert(tk.END, startup_text)
         self.text_widget.config(state=tk.DISABLED)
@@ -133,14 +140,24 @@ class Console(tk.Toplevel):
 
     def toggle_sound(self, mute: bool):
         """Toggle sound on/off and update shared state and config."""
+        global default_index  # <-- додаємо
         self.sound_muted = mute
         pg.mixer.music.set_volume(0 if mute else 1)
+
         # Update config and save to file
+        if not config.has_section("sound"):
+            config.add_section("sound")
         config.set("sound", "muted", str(mute))
         with open("config/config.cfg", "w") as configfile:
             config.write(configfile)
 
+        # Оновлюємо глобальну змінну, щоб меню побачило зміни
+        default_index = 1 if mute else 0
+
         return f"Sound {'muted' if mute else 'unmuted'}"
+
+    def get_sound_muted(self):
+        return self.sound_muted
 
     def update_sound_state(self):
         """Update sound state display."""
@@ -158,10 +175,10 @@ class Console(tk.Toplevel):
         self.text_widget.config(state=tk.NORMAL)
         self.text_widget.delete("1.0", tk.END)
         startup_text = (
-            "SpaceShip Battle! Build 1.0\n"
+            "SpaceShip Battle! Build 1.3\n"
             "Author: I#Oleg\n"
-            "Version: 1.2\n"
-            "Date compiled: 21.05.2025\n"
+            "Version: 1.3\n"
+            "Date compiled: 01.06.2025\n"
         )
         self.text_widget.insert(tk.END, startup_text)
         self.text_widget.config(state=tk.DISABLED)
