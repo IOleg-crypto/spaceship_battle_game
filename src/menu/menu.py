@@ -286,16 +286,6 @@ class MainMenu:
                 if event.type == pg.KEYDOWN and event.key == pg.K_2:
                     self.start_console()
 
-            # 2) ПЕРЕВІРЯЄМО, чи default_index змінився (тут імпортуємо щокадру)
-            new_index = default_index  # читаємо “живий” default_index з console.py
-            if new_index != current_menu_index:
-                # Якщо консоль смутувала/розсмикувала музику, треба оновити селектор і викликати set_sound_status
-                current_menu_index = new_index
-                self.status_music.set_value(current_menu_index)
-                # Тепер явно вмикаємо/вимикаємо музику в головному меню:
-                # sound_values[current_menu_index] дає True/False
-                self.set_sound_status(None, sound_values[current_menu_index])
-
 
 
             self.bg.update()
