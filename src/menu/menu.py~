@@ -8,7 +8,7 @@ import configparser as cfg
 import os
 
 from .background import MovingBackground
-from .console import Console, default_index
+from .console import *
 from src.materials import *  # your game materials
 
 
@@ -264,13 +264,19 @@ class MainMenu:
         main_menu.add.button('Exit', pm.events.EXIT, font_color=WHITE)
 
         # Play background music if not muted
-        if not self.sound_muted:
+        if not self.sound_muted or default_index == 0:
             pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
             pg.mixer.music.set_volume(self.volume)
             pg.mixer.music.play(0)
 
+        if self.status_music:
+            self.status_music.set_value(default_index)
+
+        current_menu_index = initial_index
+
         # Main event loop
         while True:
+            # 1) Спочатку обробляємо події
             events = pg.event.get()
             for event in events:
                 if event.type == pg.QUIT:
@@ -279,14 +285,25 @@ class MainMenu:
                 if event.type == pg.KEYDOWN and event.key == pg.K_2:
                     self.start_console()
 
+            # 2) ПЕРЕВІРЯЄМО, чи default_index змінився (тут імпортуємо щокадру)
+            new_index = default_index  # читаємо “живий” default_index з console.py
+            if new_index != current_menu_index:
+                # Якщо консоль смутувала/розсмикувала музику, треба оновити селектор і викликати set_sound_status
+                current_menu_index = new_index
+                self.status_music.set_value(current_menu_index)
+                # Тепер явно вмикаємо/вимикаємо музику в головному меню:
+                # sound_values[current_menu_index] дає True/False
+                self.set_sound_status(None, sound_values[current_menu_index])
+
+
+
             self.bg.update()
             self.bg.draw()
             main_menu.update(events)
             main_menu.draw(self.screen)
             pg.display.flip()
 
-            if self.status_music:
-                self.status_music.set_value(default_index)
+
 
     def start_game(self):
         """Start the game and handle music pause/unpause."""
@@ -302,9 +319,7 @@ class MainMenu:
             pg.mixer.music.unpause()
 
     def set_sound_status(self, _label, mute: bool) -> bool:
-        """Toggle mute state, update music playback and slider lock."""
         self.sound_muted = mute
-
         if self.sound_muted:
             pg.mixer.music.pause()
         else:
@@ -316,11 +331,10 @@ class MainMenu:
         if self.volume_slider:
             self.volume_slider.readonly = self.sound_muted
 
-        # Зберігаємо у конфіг
+        # Зберігаємо в конфіг
         self.save_config()
 
-        # --- ОНОВЛЮЄМО ГЛОБАЛЬНУ default_index ---
-        # Тут ми повторно імпортуємо, щоб змінити саме ту змінну, що в console.py
+        # Оновлюємо глобальну default_index, щоби консоль теж знала про зміну
         from .console import default_index as console_default_index
         console_default_index = 1 if mute else 0
 

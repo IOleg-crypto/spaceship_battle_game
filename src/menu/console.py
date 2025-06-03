@@ -30,7 +30,6 @@ class Console(tk.Toplevel):
 
         """To take control on main menu"""
         global default_index
-        default_index = 1 if sound_muted else 0
 
 
         # Initialize pygame mixer
