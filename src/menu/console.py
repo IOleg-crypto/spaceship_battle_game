@@ -6,8 +6,6 @@ import configparser as cfg
 import ctypes
 
 
-
-
 config = cfg.ConfigParser()
 config.read("config/config.cfg")
 
@@ -15,7 +13,7 @@ config.read("config/config.cfg")
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 
-default_index = 0
+default_sound_muted = False
 
 
 class Console(tk.Toplevel):
@@ -29,7 +27,8 @@ class Console(tk.Toplevel):
         self.number = 0
 
         """To take control on main menu"""
-        global default_index
+        global default_sound_muted
+        default_sound_muted = sound_muted
 
 
         # Initialize pygame mixer
@@ -138,20 +137,19 @@ class Console(tk.Toplevel):
         self.listbox.delete(0, tk.END)  # Hide suggestions
 
     def toggle_sound(self, mute: bool):
-        """Toggle sound on/off and update shared state and config."""
-        global default_index  # <-- додаємо
+        global default_sound_muted
         self.sound_muted = mute
         pg.mixer.music.set_volume(0 if mute else 1)
 
-        # Update config and save to file
+        # Оновлюємо config-файл
         if not config.has_section("sound"):
             config.add_section("sound")
         config.set("sound", "muted", str(mute))
         with open("config/config.cfg", "w") as configfile:
             config.write(configfile)
 
-        # Оновлюємо глобальну змінну, щоб меню побачило зміни
-        default_index = 1 if mute else 0
+        # Оновлюємо глобальну змінну
+        default_sound_muted = mute
 
         return f"Sound {'muted' if mute else 'unmuted'}"
 

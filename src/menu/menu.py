@@ -1,19 +1,17 @@
-import multiprocessing
+import os
 import threading
 import tkinter as tk
 from tkinter import filedialog
-import multiprocessing as mp
+import pygame as pg
 import pygame_menu as pm
 import configparser as cfg
-import os
 
 from .background import MovingBackground
-from .console import *
-from src.materials import *  # your game materials
+from .console import Console
+from . import console as console_module  # to read/write console_module.default_sound_muted
+from src.materials import *  # your game assets (images, sounds, etc.)
 
-
-
-# Define color constants (if needed)
+# Color constants (if needed elsewhere)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
@@ -29,8 +27,15 @@ CONFIG_PATH = "config/config.cfg"
 config = cfg.ConfigParser()
 
 
-
 def console_process(sound_muted: bool, width: int, height: int, enemies: int):
+    """
+    Launch the Console window in a separate thread.
+    Parameters:
+        sound_muted: initial mute state (True/False)
+        width: main game window width
+        height: main game window height
+        enemies: number of enemies to spawn
+    """
     root = tk.Tk()
     root.title("Console")
     root.iconify()
@@ -40,20 +45,22 @@ def console_process(sound_muted: bool, width: int, height: int, enemies: int):
 
     root.protocol("WM_DELETE_WINDOW", on_close)
 
+    # Create an instance of Console (tk.Toplevel)
     console = Console(
         sound_muted=sound_muted,
         screen_width=width,
         screen_height=height,
         enemies=enemies,
     )
-
     console.protocol("WM_DELETE_WINDOW", on_close)
-
     root.mainloop()
 
 
 def open_filedialog(file_path: str):
-    """Open file dialog to select an entity image."""
+    """
+    Open a file dialog to let the user select a PNG spaceship image.
+    Returns the selected file path as a string.
+    """
     root = tk.Tk()
     root.withdraw()
     selected_path = filedialog.askopenfilename(
@@ -61,73 +68,62 @@ def open_filedialog(file_path: str):
         filetypes=[("Image files (transparent PNG)", "*.png")]
     )
     root.destroy()
-    file_path = selected_path
-    print(file_path)
-    return file_path
+    print(selected_path)
+    return selected_path
 
 
 class MainMenu:
-    """Main menu class with settings persistence."""
+    """Main menu class that handles settings persistence and menu drawing."""
 
-    # path to choose spaceship
     spaceship_path = None
-    """Add status music as variable that holds selector"""
     status_music = None
-    """Variable that holds(bool) fullscreen status"""
     fullscreen_status = None
-    """To prevent problem: user can create many console window"""
     createdConsole = 0
-    """"For change sound selector (On/Off)"""
 
-
-    def __init__(self,
-                 width: int,
-                 height: int,
-                 title: str,
-                 screen,
-                 start_game_callback: object,
-                 enemies: int):
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        title: str,
+        screen,
+        start_game_callback: object,
+        enemies: int
+    ):
         # Load existing configuration or use defaults
         config.read(CONFIG_PATH)
 
-        # Config sections: [window], [sound], [game]
+        # Retrieve window dimensions and fullscreen flag
         self.width = config.getint("window", "width", fallback=width)
         self.height = config.getint("window", "height", fallback=height)
         self.sound_muted = config.getboolean("sound", "muted", fallback=False)
         self.volume = config.getfloat("sound", "volume", fallback=0.5)
         self.fullscreen = config.getboolean("window", "fullscreen", fallback=False)
         self.difficulty = config.get("game", "difficulty", fallback="Normal")
-        # Apply difficulty to set enemy count
+
+        # Set enemy count based on difficulty
         self.set_difficulty(None, self.difficulty)
-        """
-            For monitor how many times player go to new game
-            to prevent drop off of settings in game
-        """
+
+        # Counter for how many times "Play" was clicked, so settings are preserved
         self.check_play_game = 0
-        """Custom path to choose spaceship"""
         self.spaceship_path = None
-        """Add status music as variable that holds selector"""
         self.status_music = None
-        """Variable that holds(bool) fullscreen status"""
         self.fullscreen_status = None
-        """To prevent problem: user can create many console window"""
         self.createdConsole = 0
         self.console_process = None
-        # Store parameters
+
+        # Store title, screen, callback, and initial enemy count
         self.title = title
         self.screen = screen
         self.start_game_callback = start_game_callback
         self.enemies = enemies
-        self.console = Console
 
-
-        # Create moving background
+        # Initialize the moving background for the menu
         self.bg = MovingBackground(
             screen,
             os.path.join("assets/background", "background.jpg"),
             2
         )
-        # Copy and customize dark theme
+        # Copy and customize the dark theme for pygame_menu
         self.custom_theme = pm.themes.THEME_DARK.copy()
         self.custom_theme.background_color = pm.baseimage.BaseImage(
             image_path=os.path.join("assets/background", "background.jpg"),
@@ -136,13 +132,17 @@ class MainMenu:
         self.volume_slider = None
 
     def save_config(self):
-        """Write current settings back to the configuration file."""
-
+        """
+        Write the current settings back to the configuration file.
+        Ensures that the [window], [sound], and [game] sections exist.
+        """
         config.read(CONFIG_PATH)
-        # Ensure required sections are present
-        if not config.has_section("window"): config.add_section("window")
-        if not config.has_section("sound"): config.add_section("sound")
-        if not config.has_section("game"): config.add_section("game")
+        if not config.has_section("window"):
+            config.add_section("window")
+        if not config.has_section("sound"):
+            config.add_section("sound")
+        if not config.has_section("game"):
+            config.add_section("game")
 
         config.set("window", "width", str(self.width))
         config.set("window", "height", str(self.height))
@@ -155,7 +155,10 @@ class MainMenu:
             config.write(cfgfile)
 
     def set_difficulty(self, _label: str, difficulty: str):
-        """Update game difficulty and adjust enemy count."""
+        """
+        Update game difficulty and adjust the number of enemies accordingly.
+        Saves the new difficulty into the config file.
+        """
         self.difficulty = difficulty
         if difficulty == "Easy":
             self.enemies = 100
@@ -167,9 +170,14 @@ class MainMenu:
         self.save_config()
 
     def get_difficulty(self):
+        """Return the current difficulty string."""
         return self.difficulty
 
     def start_console(self):
+        """
+        Launch the Console window in a separate daemon thread if not already created.
+        Prevents multiple console windows from being spawned.
+        """
         if self.createdConsole == 1:
             if self.console_process is not None and not self.console_process.is_alive():
                 self.createdConsole = 0
@@ -190,27 +198,43 @@ class MainMenu:
             p.start()
             self.console_process = p
 
-
     def draw_menu(self):
-        """Draw the main and settings menus and handle events."""
+        """
+        Draw the main menu and settings menu, handling events and keeping
+        the mute/unmute selector synchronized with Console.default_sound_muted.
+        """
         pg.mixer.init()
 
-        main_menu = pm.Menu(title=self.title,
-                            width=self.width,
-                            height=self.height,
-                            theme=self.custom_theme)
+        main_menu = pm.Menu(
+            title=self.title,
+            width=self.width,
+            height=self.height,
+            theme=self.custom_theme
+        )
         settings_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
 
+        # 1) Prepare pairs for the "Mute menu music" selector
         list_sound_status = [('Off', False), ('On', True)]
-        # За замовчуванням знаходимо індекс із конфига
-        saved_sound_status = config.getboolean("sound", "muted")
-        sound_values = [sound[1] for sound in list_sound_status]
+        sound_values = [pair[1] for pair in list_sound_status]  # -> [False, True]
 
-        if default_index in (0, 1):
-            initial_index = default_index
+        # 2) Read from config in case the console hasn't launched yet
+        saved_sound_status = config.getboolean("sound", "muted", fallback=False)
+
+        # 3) Determine the current boolean mute state:
+        #   - If console_module.default_sound_muted is already bool, use it
+        #   - Otherwise, use saved_sound_status from config
+        if isinstance(console_module.default_sound_muted, bool):
+            current_sound = console_module.default_sound_muted
         else:
-            initial_index = sound_values.index(saved_sound_status)
+            current_sound = saved_sound_status
 
+        try:
+            initial_index = sound_values.index(current_sound)
+        except ValueError:
+            # Fallback to "Off" if somehow neither is found
+            initial_index = sound_values.index(False)
+
+        # 4) Create the selector for Mute/Unmute
         self.status_music = settings_menu.add.selector(
             'Mute menu music:',
             list_sound_status,
@@ -218,13 +242,13 @@ class MainMenu:
             onchange=self.set_sound_status
         )
 
-        # Fullscreen toggle selector
+        # Create the fullscreen toggle selector
         self.fullscreen_status = settings_menu.add.selector(
             'Fullscreen:',
             [('Off', False), ('On', True)],
             onchange=self.set_fullscreen
         )
-        # Volume slider with interactivity controlled by mute
+        # Create the volume slider, disabled if muted
         self.volume_slider = settings_menu.add.range_slider(
             title="Volume",
             default=self.volume,
@@ -234,28 +258,21 @@ class MainMenu:
         )
         self.volume_slider.readonly = self.sound_muted
 
-        """static list"""
+        # Create the difficulty selector
         list_difficulty = [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')]
-        """
-           Take index to prevent drop off 
-           difficulty in settings after win
-        """
         difficulty_values = [d[1] for d in list_difficulty]
-        saved_difficulty = config.get("game", "difficulty")
-        index = difficulty_values.index(saved_difficulty) if self.check_play_game == 0 else 1
+        saved_difficulty = config.get("game", "difficulty", fallback="Normal")
+        diff_index = difficulty_values.index(saved_difficulty) if self.check_play_game == 0 else 1
 
         settings_menu.add.selector(
             'Select difficulty:',
             list_difficulty,
-            default=index,
+            default=diff_index,
             onchange=self.set_difficulty,
         )
-        # Open file dialog for custom entity images
-        settings_menu.add.button(
-            "Choose entities",
-            self.choose_spaceship
-        )
-        # Back button to main menu
+
+        # Button to open file dialog for spaceship selection
+        settings_menu.add.button("Choose entities", self.choose_spaceship)
         settings_menu.add.button('Back', pm.events.BACK)
 
         # Main menu buttons
@@ -264,20 +281,17 @@ class MainMenu:
         main_menu.add.button('Exit', pm.events.EXIT, font_color=WHITE)
 
         # Play background music if not muted
-        if not self.sound_muted or default_index == 0:
+        if not self.sound_muted or console_module.default_sound_muted is False:
             pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
             pg.mixer.music.set_volume(self.volume)
             pg.mixer.music.play(0)
-            list_sound_status = list_sound_status[0]
 
-        if self.status_music:
-            self.status_music.set_value(default_index)
+        # Immediately set selector value to avoid a visual glitch
+        self.status_music.set_value(initial_index)
 
-        current_menu_index = initial_index
-
-        # Main event loop
+        # Main loop to handle events and update menus
+        prev_sound_state = current_sound
         while True:
-            # 1) Спочатку обробляємо події
             events = pg.event.get()
             for event in events:
                 if event.type == pg.QUIT:
@@ -286,23 +300,36 @@ class MainMenu:
                 if event.type == pg.KEYDOWN and event.key == pg.K_2:
                     self.start_console()
 
+            # ==== Synchronize the selector only if the mute state changed ====
+            new_sound_state = (
+                console_module.default_sound_muted
+                if isinstance(console_module.default_sound_muted, bool)
+                else saved_sound_status
+            )
+            if new_sound_state != prev_sound_state:
+                try:
+                    idx = sound_values.index(new_sound_state)
+                except ValueError:
+                    idx = sound_values.index(False)
+                self.status_music.set_value(idx)
+                prev_sound_state = new_sound_state
 
-
+            # ==== Update background and draw menus ====
             self.bg.update()
             self.bg.draw()
             main_menu.update(events)
             main_menu.draw(self.screen)
             pg.display.flip()
 
-
-
     def start_game(self):
-        """Start the game and handle music pause/unpause."""
+        """
+        Fill the screen black, increment the play counter, call the start_game_callback,
+        and pause/unpause menu music depending on mute state.
+        """
         self.screen.fill(BLACK)
         pg.display.update()
-        """Check how many times player select new game."""
         self.check_play_game += 1
-        print(f"Start new game : ${self.check_play_game}")
+        print(f"Start new game : {self.check_play_game}")
         self.start_game_callback()
         if self.sound_muted:
             pg.mixer.music.pause()
@@ -310,6 +337,11 @@ class MainMenu:
             pg.mixer.music.unpause()
 
     def set_sound_status(self, _label, mute: bool) -> bool:
+        """
+        Called when the user changes the mute selector in the settings menu.
+        Updates self.sound_muted, pauses or resumes music, saves to config,
+        and updates the global console_module.default_sound_muted.
+        """
         self.sound_muted = mute
         if self.sound_muted:
             pg.mixer.music.pause()
@@ -322,24 +354,27 @@ class MainMenu:
         if self.volume_slider:
             self.volume_slider.readonly = self.sound_muted
 
-        # Зберігаємо в конфіг
+        # Save new mute status to config file
         self.save_config()
 
-        # Оновлюємо глобальну default_index, щоби консоль теж знала про зміну
-        from .console import default_index as console_default_index
-        console_default_index = 1 if mute else 0
+        # Update the global variable in console.py so the console window sees the change
+        console_module.default_sound_muted = mute
 
         return self.sound_muted
 
     def on_volume_change(self, value: float):
-        """Change music volume via slider if not muted and save."""
+        """
+        Adjust the music volume if not muted and save the volume setting to config.
+        """
         self.volume = value
         if not self.sound_muted:
             pg.mixer.music.set_volume(self.volume)
         self.save_config()
 
     def set_fullscreen(self, _label: str, fullscreen: bool) -> bool:
-        """Toggle fullscreen mode and save setting."""
+        """
+        Toggle fullscreen mode for the game window and save that preference to config.
+        """
         self.fullscreen = fullscreen
         if fullscreen:
             self.screen = pg.display.set_mode((self.width, self.height), pg.FULLSCREEN)
@@ -351,6 +386,10 @@ class MainMenu:
         return fullscreen
 
     def choose_spaceship(self):
+        """
+        Open the file dialog to let the user pick a custom spaceship image.
+        Store the resulting file path in self.spaceship_path.
+        """
         selected = open_filedialog("")
         if selected:
             self.spaceship_path = selected
