@@ -1,15 +1,15 @@
+import configparser as cfg
 import os
 import threading
 import tkinter as tk
 from tkinter import filedialog
+
 import pygame as pg
 import pygame_menu as pm
-import configparser as cfg
 
+from . import console as console_module  # to read/write console_module.default_sound_muted
 from .background import MovingBackground
 from .console import Console
-from . import console as console_module  # to read/write console_module.default_sound_muted
-from src.materials import *  # your game assets (images, sounds, etc.)
 
 # Color constants (if needed elsewhere)
 RED = (255, 0, 0)
@@ -230,6 +230,7 @@ class MainMenu:
 
         try:
             initial_index = sound_values.index(current_sound)
+
         except ValueError:
             # Fallback to "Off" if somehow neither is found
             initial_index = sound_values.index(False)
@@ -256,7 +257,9 @@ class MainMenu:
             increment=0.05,
             onchange=self.on_volume_change
         )
+
         self.volume_slider.readonly = self.sound_muted
+
 
         # Create the difficulty selector
         list_difficulty = [('Easy', 'Easy'), ('Normal', 'Normal'), ('Hard', 'Hard')]
@@ -288,6 +291,7 @@ class MainMenu:
 
         # Immediately set selector value to avoid a visual glitch
         self.status_music.set_value(initial_index)
+        self.volume_slider.readonly = (True if current_sound else False)
 
         # Main loop to handle events and update menus
         prev_sound_state = current_sound
@@ -312,6 +316,8 @@ class MainMenu:
                 except ValueError:
                     idx = sound_values.index(False)
                 self.status_music.set_value(idx)
+                self.volume_slider.readonly = new_sound_state
+
                 prev_sound_state = new_sound_state
 
             # ==== Update background and draw menus ====

@@ -1,4 +1,5 @@
 """main.py - main game functionality"""
+import os
 
 from pygame.locals import *
 
@@ -8,8 +9,8 @@ import configparser as cfg
 from blast import RenderSpaceShipShells, Explosion
 from entities import Enemy
 from entities import RenderSpaceShip
-from materials import *
 from menu import MainMenu
+import pygame as pg
 
 """For exception"""
 import tkinter as tk
@@ -27,9 +28,17 @@ RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 
+background = None
+spaceship_sprite = None
+shell_sprite = None
+enemy_sprite_path = None
+alien_sprite_path = None
+program_icon = None
+
 """Config read"""
 
 config = cfg.ConfigParser()
+
 
 
 def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
@@ -98,11 +107,9 @@ def handle_spaceship_movement(keys, render):
 def main():
     config.read("config/config.cfg")
     sound_muted: bool = config.getboolean("sound", "muted")
-    '''''''''''''''''''''''
-        Screen Resolution
-    '''''''''''''''''''''''
+
     try:
-        screen_width = config.getint("window", "width")
+        screen_width  = config.getint("window", "width")
         screen_height = config.getint("window", "height")
         if screen_width < 640 or screen_height < 480:
             raise ResolutionException("Selected resolution is too small", 640, 480)
@@ -112,32 +119,47 @@ def main():
         messagebox.showerror("Error", str(e))
         return -1
 
-    # defined enemies to 0(not spawn)
     enemies = 0
-
     spawn_enemies = set_difficulty(enemies, screen=[screen_width, screen_height])
 
     pg.init()
     pg.mixer.init()
     flags = DOUBLEBUF
     screen = pg.display.set_mode((screen_width, screen_height), flags)
-    clock = pg.time.Clock()
-    pg.display.set_caption("Spaceship Battle!")
+    global background, spaceship_sprite, shell_sprite
+    global enemy_sprite_path, alien_sprite_path, program_icon
 
-    pg.display.set_icon(programIcon)
+    background = pg.image.load(
+        os.path.join("assets", "background", "space_background.png")
+    ).convert_alpha()
+    spaceship_sprite = pg.image.load(
+        os.path.join("assets", "spaceships", "spaceship2d.png")
+    ).convert_alpha()
+    shell_sprite = pg.image.load(
+        os.path.join("assets", "shells", "shell.png")
+    ).convert_alpha()
+
+    # ← restore this line so program_icon is a real Surface:
+    program_icon = pg.image.load(
+        os.path.join("assets", "icon", "icon.png")
+    ).convert_alpha()
+
+    enemy_sprite_path = os.path.join("assets", "spaceships", "spaceship2d_2.png")
+    alien_sprite_path = os.path.join("assets", "invaders", "ufo.png")
+    # Set the window icon AFTER mat.program_icon has been loaded
+    pg.display.set_icon(program_icon)
+    pg.display.set_caption("Spaceship Battle!")
+    clock = pg.time.Clock()
+    # ──────────────────────────────────────────────────────────────────────────────
 
     spaceship_pos = [screen.get_width() // 2, screen.get_height() // 2]
-
-    spaceship_sprite = RenderSpaceShip(spaceship_pos, spaceship)
+    spaceship_sprite = RenderSpaceShip(spaceship_pos, spaceship_sprite)
     load_enemy = Enemy(screen, enemy_sprite_path)
-    all_sprites = pg.sprite.Group(spaceship_sprite)
-    enemy_sprite = pg.sprite.Group(load_enemy)
-    shells = RenderSpaceShipShells(shell_spaceship)
-
+    all_sprites   = pg.sprite.Group(spaceship_sprite)
+    enemy_sprite  = pg.sprite.Group(load_enemy)
+    shells        = RenderSpaceShipShells(shell_sprite)
     explosion_group = pg.sprite.Group()
 
-    # Create multiple enemies
-    # Number of enemies to create
     enemies = [
         Enemy(screen, random.choice([alien_sprite_path, enemy_sprite_path]))
         for _ in range(spawn_enemies)
@@ -163,7 +185,7 @@ def main():
             spawn_enemies,
             explosion_group,
             enemies,
-            spaceship,
+            spaceship_sprite,
             config,
             sound_muted=sound_muted
         ),
