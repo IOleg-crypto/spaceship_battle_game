@@ -26,19 +26,20 @@ jobs:
 
     - name: Build EXE with PyInstaller
       run: |
-        pyinstaller main.py --onefile --name pygame-battle
+        pyinstaller main.py --onefile --name spaceship_game --add-data "assets;assets"
         mkdir dist_upload
-        copy dist\pygame-battle.exe dist_upload\
+        copy dist\spaceship_game.exe dist_upload\
 
     - name: Zip the EXE
-      run: powershell Compress-Archive -Path dist_upload\* -DestinationPath pygame-battle.zip
+      run: powershell Compress-Archive -Path dist_upload\* -DestinationPath spaceship_game.zip
 
     - name: Create GitHub Release and Upload
       uses: softprops/action-gh-release@v2
       with:
         name: Release ${{ github.ref_name }}
         tag_name: ${{ github.ref_name }}
-        files: pygame-battle.zip
+        files: spaceship_game.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
