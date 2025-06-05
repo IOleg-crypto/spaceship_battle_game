@@ -2,8 +2,6 @@ name: Build and Release EXE (pygame-battle)
 
 on:
   push:
-    tags :
-      - 'spaceship-ships-v*.*.*'
     branches: [ "pygame-battle" ]
   pull_request:
     branches: [ "pygame-battle" ]
