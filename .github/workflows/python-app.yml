@@ -3,7 +3,8 @@ name: Spaceship Game EXE
 on:
   push:
     tags:
-      - 'spaceship_game_code'
+      - 'spaceship_game'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -43,5 +44,3 @@ jobs:
         files: spaceship_game.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
