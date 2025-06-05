@@ -44,4 +44,6 @@ jobs:
         tag_name: build-${{ github.run_number }}
         files: spaceship_game.zip
       env:
+
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
