@@ -29,11 +29,11 @@ jobs:
     - name: Build EXE with PyInstaller
       run: |
         cd src
-        pyinstaller main.py --onefile --name spaceship_game --add-data "../assets;assets" --paths=.
+        pyinstaller main.py --onefile --name spaceship_game --add-data "../assets;assets" --add-data "../config/config.cfg;config" --paths=.
         cd ..
         mkdir dist_upload
-        copy src\config\config.cfg dist_upload\
         copy src\dist\spaceship_game.exe dist_upload\
+        copy config\config.cfg dist_upload\
 
     - name: Zip the EXE
       run: powershell Compress-Archive -Path dist_upload\* -DestinationPath spaceship_game.zip
