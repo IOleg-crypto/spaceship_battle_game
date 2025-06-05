@@ -34,7 +34,7 @@ jobs:
         mkdir dist_upload
         copy src\dist\spaceship_game.exe dist_upload\
         copy config dist_upload\
-        copy assets dist_upload
+        copy assets dist_upload\
 
     - name: Zip the EXE
       run: powershell Compress-Archive -Path dist_upload\* -DestinationPath spaceship_game.zip
