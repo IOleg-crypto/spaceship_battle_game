@@ -29,7 +29,7 @@ jobs:
     - name: Build EXE with PyInstaller
       run: |
         cd src
-        pyinstaller main.py --onefile --name spaceship_game --add-data "../assets;assets" --paths=.
+        pyinstaller main.py --onefile --name spaceship_game --add-data "../assets;assets" --paths=
         cd ..
         mkdir dist_upload
         copy src\dist\spaceship_game.exe dist_upload\
