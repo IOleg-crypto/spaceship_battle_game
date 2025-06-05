@@ -38,6 +38,7 @@ jobs:
       run: |
         Copy-Item config -Destination dist_upload\config -Recurse
         Copy-Item assets -Destination dist_upload\assets -Recurse
+        Copy-Item sound  -Destination dist_upload\sound -Recurse
 
     - name: Zip the EXE and resources
       run: powershell Compress-Archive -Path dist_upload\* -DestinationPath spaceship_game.zip
