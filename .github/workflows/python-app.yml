@@ -13,7 +13,7 @@ jobs:
     - name: Checkout latest commit from pygame-battle
       uses: actions/checkout@v4
       with:
-        fetch-depth: 2
+        fetch-depth: 1
 
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
@@ -44,22 +44,12 @@ jobs:
     - name: Zip the EXE and resources
       run: powershell Compress-Archive -Path dist_upload\* -DestinationPath spaceship_game.zip
 
-    - name: Install GitHub CLI
-      uses: cli/cli-action@v2
-
-    - name: Authenticate GH CLI
-      run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-
-    - name: Delete old release (if exists)
-      run: |
-        if gh release view spaceship_game --repo "${{ github.repository }}" >$null 2>&1; then
-          gh release delete spaceship_game --yes --repo "${{ github.repository }}"
-        fi
-
     - name: Create new GitHub Release and upload ZIP
-      run: |
-        gh release create spaceship_game spaceship_game.zip `
-          --title "Spaceship Game ${{ github.run_number }}" `
-          --notes "Automatic release with latest commit from branch 'pygame-battle'."
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: spaceship_game
+        name: "Spaceship Game ${{ github.run_number }}"
+        body: "Automatic release with latest commit from branch 'pygame-battle'."
+        files: spaceship_game.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
