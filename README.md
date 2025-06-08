@@ -73,11 +73,14 @@ height = 720
 fullscreen = True
 
 [sound]
-muted = True
+muted = False
 volume = 1.0
 
 [game]
 difficulty = Hard
+
+[player]
+spaceship = ...(your path)
 ```
 
 **and Console** _just click_ `2`

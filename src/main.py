@@ -9,7 +9,7 @@ import configparser as cfg
 from blast import RenderSpaceShipShells, Explosion
 from entities import Enemy
 from entities import RenderSpaceShip
-from menu import MainMenu
+from menu import MainMenu , spaceship_path_new
 import pygame as pg
 
 """For exception"""
@@ -27,7 +27,7 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
-
+"""Just assets for game"""
 background = None
 spaceship_sprite = None
 shell_sprite = None
@@ -36,16 +36,14 @@ alien_sprite_path = None
 program_icon = None
 
 """Config read"""
-
 config = cfg.ConfigParser()
 
 
-
+"""Creating enemies by number"""
 def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
     images = [enemy_image_path, alien_image_path]
     enemies = [Enemy(screen, random.choice(images)) for _ in range(num_enemies)]
     return enemies
-
 
 def set_difficulty(num_enemies: int, screen) -> int:
     if MainMenu.get_difficulty == "Easy":
@@ -132,9 +130,22 @@ def main():
     background = pg.image.load(
         os.path.join("assets", "background", "space_background.png")
     ).convert_alpha()
-    spaceship_sprite = pg.image.load(
-        os.path.join("assets", "spaceships", "spaceship2d.png")
-    ).convert_alpha()
+
+    if os.path.exists(spaceship_path_new):
+        spaceship_path = spaceship_path_new
+    elif config.has_option("player", "spaceship"):
+        spaceship_path = config.get("player", "spaceship")
+    else:
+        spaceship_path = os.path.join("assets", "spaceships", "spaceship2d.png")
+
+
+
+    spaceship_sprite = pg.image.load(spaceship_path).convert_alpha()
+
+
+
+
+
     shell_sprite = pg.image.load(
         os.path.join("assets", "shells", "shell.png")
     ).convert_alpha()

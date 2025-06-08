@@ -26,6 +26,11 @@ PURPLE = (128, 0, 128)
 CONFIG_PATH = "config/config.cfg"
 config = cfg.ConfigParser()
 
+"""
+If player selected new spaceship
+"""
+spaceship_path_new = ""
+
 
 def console_process(sound_muted: bool, width: int, height: int, enemies: int):
     """
@@ -56,7 +61,7 @@ def console_process(sound_muted: bool, width: int, height: int, enemies: int):
     root.mainloop()
 
 
-def open_filedialog(file_path: str):
+def open_filedialog():
     """
     Open a file dialog to let the user select a PNG spaceship image.
     Returns the selected file path as a string.
@@ -75,10 +80,10 @@ def open_filedialog(file_path: str):
 class MainMenu:
     """Main menu class that handles settings persistence and menu drawing."""
 
-    spaceship_path = None
     status_music = None
     fullscreen_status = None
     createdConsole = 0
+
 
     def __init__(
         self,
@@ -406,12 +411,20 @@ class MainMenu:
         self.save_config()
         return fullscreen
 
+
     def choose_spaceship(self):
         """
         Open the file dialog to let the user pick a custom spaceship image.
         Store the resulting file path in self.spaceship_path.
         """
-        selected = open_filedialog("")
+        selected = open_filedialog()
         if selected:
             self.spaceship_path = selected
+            if not config.has_section("player"):
+                config.add_section("player")
+            config.set("player", "spaceship", str(self.spaceship_path))
+            with open("config/config.cfg", "w") as configfile:
+                config.write(configfile)
+            global spaceship_path_new
+            spaceship_path_new = selected
             print(f"Spaceship image set to: {self.spaceship_path}")
