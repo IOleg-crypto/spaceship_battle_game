@@ -20,7 +20,7 @@ from ResolutionException import ResolutionException
 
 import random
 
-global sound_muted
+
 global console_open
 
 WHITE = (255, 255, 255)
@@ -106,6 +106,7 @@ def main():
     config.read("config/config.cfg")
     sound_muted: bool = config.getboolean("sound", "muted")
 
+
     try:
         screen_width  = config.getint("window", "width")
         screen_height = config.getint("window", "height")
@@ -127,6 +128,8 @@ def main():
     global background, spaceship_sprite, shell_sprite
     global enemy_sprite_path, alien_sprite_path, program_icon
 
+
+
     background = pg.image.load(
         os.path.join("assets", "background", "space_background.png")
     ).convert_alpha()
@@ -134,17 +137,15 @@ def main():
     if os.path.exists(spaceship_path_new):
         spaceship_path = spaceship_path_new
     elif config.has_option("player", "spaceship"):
-        spaceship_path = config.get("player", "spaceship")
+        spaceship_path_config = config.get("player", "spaceship")
+        if os.path.exists(spaceship_path_config):
+            spaceship_path = spaceship_path_config
+        else:
+            spaceship_path = os.path.join("assets", "spaceships", "spaceship2d.png")
     else:
         spaceship_path = os.path.join("assets", "spaceships", "spaceship2d.png")
 
-
-
     spaceship_sprite = pg.image.load(spaceship_path).convert_alpha()
-
-
-
-
 
     shell_sprite = pg.image.load(
         os.path.join("assets", "shells", "shell.png")
@@ -202,6 +203,7 @@ def main():
         ),
         enemies=spawn_enemies,
     )
+
     main_menu.draw_menu()
     return None
 

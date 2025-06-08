@@ -100,7 +100,7 @@ class MainMenu:
         # Retrieve window dimensions and fullscreen flag
         self.width = config.getint("window", "width", fallback=width)
         self.height = config.getint("window", "height", fallback=height)
-        self.sound_muted = config.getboolean("sound", "muted", fallback=False)
+        self.sound_muted = config.getboolean("sound", "muted")
         self.volume = config.getfloat("sound", "volume", fallback=0.5)
         self.fullscreen = config.getboolean("window", "fullscreen", fallback=False)
         self.difficulty = config.get("game", "difficulty", fallback="Normal")
@@ -155,6 +155,7 @@ class MainMenu:
         config.set("sound", "muted", str(self.sound_muted))
         config.set("sound", "volume", str(self.volume))
         config.set("game", "difficulty", self.difficulty)
+
 
         with open(CONFIG_PATH, "w") as cfgfile:
             config.write(cfgfile)
@@ -300,6 +301,12 @@ class MainMenu:
 
         if not self.volume_slider.readonly:
             pg.mixer_music.play(0)
+
+        if self.sound_muted:
+            self.status_music.set_value(1)
+            self.volume_slider.readonly = True
+            pg.mixer_music.stop()
+
 
         # Main loop to handle events and update menus
         prev_sound_state = current_sound
