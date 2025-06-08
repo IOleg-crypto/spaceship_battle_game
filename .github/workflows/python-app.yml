@@ -39,7 +39,7 @@ jobs:
         Copy-Item config -Destination dist_upload\config -Recurse
         Copy-Item assets -Destination dist_upload\assets -Recurse
         Copy-Item sound  -Destination dist_upload\sound -Recurse
-        Copy-Item font  -Destination dist_upload\font -Recurse
+        Copy-Item font   -Destination dist_upload\font -Recurse
 
     - name: Zip the EXE and resources
       run: powershell Compress-Archive -Path dist_upload\* -DestinationPath spaceship_game.zip
@@ -47,9 +47,11 @@ jobs:
     - name: Create new GitHub Release and upload ZIP
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: spaceship_game
+        tag_name: build-${{ github.run_number }}
         name: "Spaceship Game ${{ github.run_number }}"
-        body: "Automatic release with latest commit from branch 'pygame-battle'."
+        body: |
+          • Commit: ${{ github.sha }}
+          • Message: ${{ github.event.head_commit.message }}
         files: spaceship_game.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
