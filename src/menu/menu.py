@@ -293,6 +293,9 @@ class MainMenu:
         self.status_music.set_value(initial_index)
         self.volume_slider.readonly = (True if current_sound else False)
 
+        if not self.volume_slider.readonly:
+            pg.mixer_music.play(0)
+
         # Main loop to handle events and update menus
         prev_sound_state = current_sound
         while True:
@@ -318,7 +321,15 @@ class MainMenu:
                 self.status_music.set_value(idx)
                 self.volume_slider.readonly = new_sound_state
 
+                if not new_sound_state:
+                    pg.mixer.music.set_volume(self.volume)
+                    pg.mixer.music.play(-1)
+                else:
+                    pg.mixer.music.stop()
+
                 prev_sound_state = new_sound_state
+
+
 
             # ==== Update background and draw menus ====
             self.bg.update()
@@ -355,7 +366,10 @@ class MainMenu:
             if not pg.mixer.music.get_busy():
                 pg.mixer.music.load("sound/menu_music/stellar-discovery-219109.mp3")
                 pg.mixer.music.play(-1)
+            else:
+                pg.mixer.music.unpause()
             pg.mixer.music.set_volume(self.volume)
+
 
         if self.volume_slider:
             self.volume_slider.readonly = self.sound_muted
@@ -365,6 +379,7 @@ class MainMenu:
 
         # Update the global variable in console.py so the console window sees the change
         console_module.default_sound_muted = mute
+
 
         return self.sound_muted
 
