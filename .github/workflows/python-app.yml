@@ -1,8 +1,6 @@
 name: Build and Release EXE (pygame-battle)
 
 on:
-  push:
-    branches: [ "pygame-battle" ]
   workflow_dispatch:
 
 jobs:
