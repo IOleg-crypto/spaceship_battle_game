@@ -211,7 +211,6 @@ class MainMenu:
         Draw the main menu and settings menu, handling events and keeping
         the mute/unmute selector synchronized with Console.default_sound_muted.
         """
-        pg.mixer.init()
 
         main_menu = pm.Menu(
             title=self.title,
@@ -316,8 +315,7 @@ class MainMenu:
             events = pg.event.get()
             for event in events:
                 if event.type == pg.QUIT:
-                    pg.quit()
-                    exit()
+                    return
                 if event.type == pg.KEYDOWN and event.key == pg.K_2:
                     self.start_console()
 
@@ -362,10 +360,12 @@ class MainMenu:
         self.check_play_game += 1
         print(f"Start new game : {self.check_play_game}")
         self.start_game_callback()
-        if self.sound_muted:
-            pg.mixer.music.pause()
-        else:
-            pg.mixer.music.unpause()
+
+        if pg.mixer.get_init():  # Перевіряємо чи mixer ініціалізований
+            if self.sound_muted:
+                pg.mixer.music.pause()
+            else:
+                pg.mixer.music.unpause()
 
     def set_sound_status(self, _label, mute: bool) -> bool:
         """

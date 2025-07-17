@@ -1,222 +1,181 @@
-from blast import Explosion
-from entities import Enemy
-from utils.Helper import display_information, fps_counter
-from movement.movement import handle_spaceship_movement
-from menu import MainMenu
-from main import create_enemies
-
-
 import pygame as pg
 import random
+import os
+import tkinter as tk
+from tkinter import messagebox
 
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
+from config.config import load_config
+from utils.ResolutionException import ResolutionException
+from menu import MainMenu
+from movement.movement import handle_spaceship_movement
+from entities import Enemy, RenderSpaceShip
+from blast import Explosion, RenderSpaceShipShells
+from utils.Helper import display_information, fps_counter, WHITE
 
-def game_loop(screen, clock, render, all_sprites, shells, enemy_sprite, enemy_image_path: str, alien_image_path: str,
-              num_enemies: int, explosion_group, count_enemies, spaceship, fullscreen, sound_muted: bool):
-    """variable for game loop"""
-    global font
-    running_program = True
-    game_finish = True
-    count = 0
-    score = 0
-    render.health = 100
 
-    Enemy(screen, random.choice([alien_image_path, enemy_image_path]))
-    all_sprites = pg.sprite.Group(render)
-    enemy_sprite = pg.sprite.Group()
-    enemy_shells = pg.sprite.Group()
-    spaceship_sprite = pg.sprite.Group()
-    spaceship_sprite.add(render)
+def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
+    images = [enemy_image_path, alien_image_path]
+    enemies = [Enemy(screen, random.choice(images)) for _ in range(num_enemies)]
+    return enemies
 
-    count_enemies: list[Enemy] = create_enemies(screen, enemy_image_path, alien_image_path, num_enemies)
-    """Spawn enemies"""
-    for enemy in count_enemies:
-        enemy_sprite.add(enemy)
-        all_sprites.add(enemy)
 
-    while running_program:
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                pg.display.flip()
-                running_program = False
-            elif event.type == pg.KEYDOWN:
-                if event.key == pg.K_1:
-                    main_menu = MainMenu(
-                        width=screen.get_width(),
-                        height=screen.get_height(),
-                        title="Spaceship Battle",
-                        screen=screen,
-                        start_game_callback=lambda: main(),
-                        # Making crash with multithreading - given argument without len
-                        enemies=len(count_enemies)
-                    )
-                    main_menu.draw_menu()
+class Game:
+    def __init__(self):
+        self.shot_count = None
+        self.score = None
+        self.running = None
+        self.enemy_shells = None
+        self.config = load_config()
+        self.sound_muted = self.config.getboolean("sound", "muted")
 
-        keys = pg.key.get_pressed()
 
-        # Enemy shooting
-        for enemy in enemy_sprite:
-            bullet = enemy.shoot()
-            if bullet:
-                enemy_shells.add(bullet)
-                all_sprites.add(bullet)
+        try:
+            self.screen_width = self.config.getint("window", "width")
+            self.screen_height = self.config.getint("window", "height")
+            if self.screen_width < 640 or self.screen_height < 480:
+                raise ResolutionException("Selected resolution is too small", 640, 480)
+        except ResolutionException as e:
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showerror("Resolution Error", str(e))
+            raise SystemExit
 
-        for bullet in enemy_shells:
-            if pg.sprite.spritecollideany(
-                    render, enemy_shells
-            ):  # Check collision with player's spaceship
-                if render.take_damage(3) <= 0:  # Adjust damage as needed
-                    game_finish = False
-                    text_game_over = pg.font.Font("font/Pacifico.ttf", 36).render(
-                        "Game Over! Press 1 to exit", True, RED
-                    )
-                    text_game_over_rect = text_game_over.get_rect()
-                    text_game_over_rect.center = screen.get_rect().center
-                    screen.blit(text_game_over, text_game_over_rect)
-                    pg.mixer.music.stop()
-                    if keys[pg.K_1]:
-                        running_program = False
-                        assert isinstance(fullscreen, object)
-                        main_menu = MainMenu(
-                            screen.get_width(),
-                            screen.get_height(),
-                            "Spaceship Battle",
-                            screen,
-                            lambda: game_loop(
-                                screen,
-                                clock,
-                                render,
-                                all_sprites,
-                                shells,
-                                enemy_sprite,
-                                enemy_image_path,
-                                alien_image_path,
-                                num_enemies,
-                                explosion_group,
-                                count_enemies,
-                                spaceship,
-                                fullscreen=fullscreen
-                            ),
-                            fullscreen
-                        )
-                        main_menu.draw_menu()
-                bullet.kill()  # Remove bullet after collision
+        self.screen = pg.display.set_mode((self.screen_width, self.screen_height))
+        self.clock = pg.time.Clock()
 
-        current_time = pg.time.get_ticks()
-        keys = pg.key.get_pressed()
-        if game_finish:
-            handle_spaceship_movement(keys, render)
+        self.background = pg.image.load(
+            os.path.join("assets", "background", "space_background.png")
+        ).convert()
+
+        self.spaceship_sprite = self.load_spaceship()
+        self.shell_sprite = pg.image.load(os.path.join("assets", "shells", "shell.png")).convert_alpha()
+        self.enemy_sprite_path = os.path.join("assets", "spaceships", "spaceship2d_2.png")
+        self.alien_sprite_path = os.path.join("assets", "invaders", "ufo.png")
+
+        self.icon = pg.image.load(os.path.join("assets", "icon", "icon.png")).convert_alpha()
+        pg.display.set_icon(self.icon)
+        pg.display.set_caption("Spaceship Battle!")
+
+        self.spawn_enemies = 50
+
+    def load_spaceship(self):
+        default_path = os.path.join("assets", "spaceships", "spaceship2d.png")
+        if self.config.has_option("player", "spaceship"):
+            path = self.config.get("player", "spaceship")
+            return pg.image.load(path).convert_alpha() if os.path.exists(path) else pg.image.load(default_path).convert_alpha()
+        return pg.image.load(default_path).convert_alpha()
+
+    def start_menu(self):
+        menu = MainMenu(
+            width=self.screen_width,
+            height=self.screen_height,
+            title="Spaceship Battle",
+            screen=self.screen,
+            start_game_callback=self.run_game_loop,
+            enemies=self.spawn_enemies,
+        )
+        menu.draw_menu()
+
+    def run_game_loop(self):
+        self.running = True
+        self.score = 0
+        self.shot_count = 0
+
+        spaceship = RenderSpaceShip(
+            [self.screen_width // 2, self.screen_height // 2],
+            self.spaceship_sprite
+        )
+
+        all_sprites = pg.sprite.Group(spaceship)
+        enemy_sprites = pg.sprite.Group()
+        explosion_group = pg.sprite.Group()
+        shells = RenderSpaceShipShells(self.shell_sprite)
+        self.enemy_shells = pg.sprite.Group()
+
+        enemies = create_enemies(self.screen, self.enemy_sprite_path, self.alien_sprite_path, self.spawn_enemies)
+        for enemy in enemies:
+            enemy_sprites.add(enemy)
+            all_sprites.add(enemy)
+
+        font = pg.font.Font("font/Pacifico.ttf", 32)
+
+        while self.running:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    self.running = False
+
+            keys = pg.key.get_pressed()
+            handle_spaceship_movement(keys, spaceship)
+
             if keys[pg.K_SPACE]:
-                shells.shoot_shell(render.rect.center)
-                if not pg.mixer.get_busy() or sound_muted:
+                shells.shoot_shell(spaceship.rect.center)
+                if not pg.mixer.get_busy() and not self.sound_muted:
                     shoot_sound = pg.mixer.Sound("sound/spaceship/spaceship_shoot.mp3")
                     shoot_sound.play()
-                count += 1
+                self.shot_count += 1
 
+            for enemy in enemy_sprites:
+                bullet = enemy.shoot()
+                if bullet:
+                    self.enemy_shells.add(bullet)
+                    all_sprites.add(bullet)
 
+            self.check_collisions_enemy(shells, enemy_sprites, all_sprites, explosion_group)
 
-        all_sprites.update()
-        shells.update()
-        enemy_sprite.update()
-        spaceship_sprite.update()
+            all_sprites.update()
+            shells.update()
+            self.enemy_shells.update()
+            explosion_group.update()
 
-        screen.blit(background, (0, 0))
+            self.screen.blit(self.background, (0, 0))
+            display_information(font, self.shot_count, self.score, spaceship, self.screen)
 
-        """display text"""
-        font = pg.font.Font("font/Pacifico.ttf", 32)
-        display_information(font, count, score, render, screen)
+            all_sprites.draw(self.screen)
+            shells.draw(self.screen)
+            self.enemy_shells.draw(self.screen)
+            explosion_group.draw(self.screen)
 
-        all_sprites.draw(screen)
-        enemy_sprite.draw(screen)
+            self.check_victory(enemy_sprites, font, spaceship)
 
-        shells.draw(screen)
-        explosion_group.draw(screen)
+            if keys[pg.K_2]:
+                fps_counter(screen=self.screen, clock=self.clock)
 
-        keys = pg.key.get_pressed()
-        if keys[pg.K_2]:
-           fps_counter(screen=screen ,clock=clock)
+            pg.display.flip()
+            self.clock.tick(60)
 
+        pg.quit()
 
-        # Handle enemy destruction and spaceship health reduction
-        for enemy in enemy_sprite:
-            if pg.sprite.groupcollide(
-                    shells, enemy_sprite, True, True
-            ):  # Replace with actual condition
+    def check_collisions_enemy(self, shells, enemy_sprites, all_sprites, explosion_group):
+        hits = pg.sprite.groupcollide(shells, enemy_sprites, True, True)
+        for _, enemies_hit in hits.items():
+            for enemy in enemies_hit:
                 explosion = enemy.destroy()
-                if explosion:  # Ensure explosion is not None
+                if explosion:
                     explosion_group.add(explosion)
                     all_sprites.add(explosion)
-                score += 1
+                self.score += 1
 
-        collisions = pg.sprite.groupcollide(shells, enemy_shells, True, True)
+        collisions = pg.sprite.groupcollide(shells, self.enemy_shells, True, True)
         for sprite, shells_hit in collisions.items():
-            for spaceship_shell in shells_hit:
-                """Create explosion at correct coords"""
-                explosion = Explosion(spaceship_shell.rect.x, spaceship_shell.rect.y)
-                explosion_group.add(explosion)
-                all_sprites.add(explosion)
-
-
-        enemies_left = len(enemy_sprite)
-        if enemies_left == 0:
-            victory_sound = pg.mixer.Sound("sound/victory/victory.mp3")
-            victory_sound.play()
-
-        if enemies_left == 0:
-            game_finish = False
-            text_finish = font.render("You won! Press 1 to exit", True, WHITE)
-            text_game_over = font.render(None, True, WHITE)  # to prevent over the text
-            text_finish_rect = text_finish.get_rect()
-            text_finish_rect.center = screen.get_rect().center
-            screen.blit(text_finish, text_finish_rect)
-            text_game_over_rect = text_game_over.get_rect()
-            text_game_over_rect.center = screen.get_rect().center
-            screen.blit(text_game_over, text_game_over_rect)
-            "Disable damage after game over"
-            for bullet in enemy_shells:
+            for bullet in shells_hit:
                 explosion = Explosion(bullet.rect.centerx, bullet.rect.centery)
                 explosion_group.add(explosion)
                 all_sprites.add(explosion)
-                bullet.kill()
 
-            sound_muted = True
+    def check_victory(self, enemy_sprites, font, spaceship):
+        if len(enemy_sprites) == 0:
+            if not self.sound_muted:
+                pg.mixer.Sound("sound/victory/victory.mp3").play()
+
+            text = font.render("You won! Press 1 to exit", True, WHITE)
+            rect = text.get_rect(center=self.screen.get_rect().center)
+            self.screen.blit(text, rect)
+            pg.display.flip()
+
+            for bullet in self.enemy_shells:
+                explosion = Explosion(bullet.rect.centerx, bullet.rect.centery)
+                self.enemy_shells.remove(bullet)
+
+            keys = pg.key.get_pressed()
             if keys[pg.K_1]:
-                running_program = False
-                main_menu = MainMenu(
-                    screen.get_width(),
-                    screen.get_height(),
-                    "Spaceship Battle",
-                    screen,
-                    lambda: main(),
-                    fullscreen
-                )
-                main_menu.draw_menu()
-
-        # Game over condition
-        if render.health <= 0:
-            text_game_over = font.render("Game Over! Press 1 to exit", True, RED)
-            text_game_over_rect = text_game_over.get_rect()
-            text_game_over_rect.center = screen.get_rect().center
-            screen.blit(text_game_over, text_game_over_rect)
-            pg.mixer.music.stop()
-            if keys[pg.K_1]:
-                running_program = False
-                main_menu = MainMenu(
-                    sound_muted,
-                    screen.get_width(),
-                    screen.get_height(),
-                    "Spaceship Battle",
-                    screen,
-                    lambda: main(),
-                    fullscreen
-                )
-                main_menu.draw_menu()
-
-
-
-        explosion_group.update()
-        pg.display.flip()
-        clock.tick(60)
-
-    pg.quit()
+                self.running = False

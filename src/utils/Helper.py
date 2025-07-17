@@ -32,7 +32,8 @@ def display_information(font, count, score, render, screen):
     screen.blit(text_score, text_score_rect)
     screen.blit(text_health, text_health_rect)
 
-def fps_counter(screen , clock):
-    fps = str(int(clock.get_fps()))
-    fps_text = pg.font.Font.render(f"FPS: {fps}", True, pg.Color("white"))
-    screen.blit(fps_text, (10, 40))
+def fps_counter(screen, clock):
+    fps = int(clock.get_fps())
+    font = pg.font.Font(None, 20)  # 20 - розмір
+    fps_text = font.render(f"FPS: {fps}", True, pg.Color("white"))
+    screen.blit(fps_text, (10, 10))
