@@ -11,6 +11,17 @@ from . import console as console_module  # to read/write console_module.default_
 from .background import MovingBackground
 from .console import Console
 
+
+
+CONFIG_PATH = "config/config.cfg"
+config = cfg.ConfigParser()
+
+"""
+If player selected new spaceship
+"""
+spaceship_path_new = ""
+
+
 # Color constants (if needed elsewhere)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -22,15 +33,6 @@ CYAN = (0, 255, 255)
 MAGENTA = (255, 0, 255)
 ORANGE = (255, 165, 0)
 PURPLE = (128, 0, 128)
-
-CONFIG_PATH = "config/config.cfg"
-config = cfg.ConfigParser()
-
-"""
-If player selected new spaceship
-"""
-spaceship_path_new = ""
-
 
 def console_process(sound_muted: bool, width: int, height: int, enemies: int):
     """

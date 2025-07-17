@@ -1,7 +1,7 @@
 """main.py - main game functionality"""
 import os
 
-from pygame.locals import *
+from pygame import DOUBLEBUF
 
 """Structure of game"""
 import configparser as cfg
@@ -22,6 +22,8 @@ import random
 
 
 global console_open
+
+
 
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -45,38 +47,7 @@ def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
     enemies = [Enemy(screen, random.choice(images)) for _ in range(num_enemies)]
     return enemies
 
-def set_difficulty(num_enemies: int, screen) -> int:
-    if MainMenu.get_difficulty == "Easy":
-        num_enemies = 10
-        if screen[0] > 800 or screen[1] > 600:
-            num_enemies = 20
-    elif MainMenu.get_difficulty == "Normal":
-        num_enemies = 25
-        if screen[0] > 800 or screen[1] > 600:
-            num_enemies = 30
-    else:
-        num_enemies = 40
-        if screen[0] > 800 or screen[1] > 600:
-            num_enemies = 60
-    return num_enemies
 
-
-
-def handle_spaceship_movement(keys, render):
-    movement = {
-        pg.K_LEFT: (-5, 0),
-        pg.K_RIGHT: (5, 0),
-        pg.K_UP: (0, -5),
-        pg.K_DOWN: (0, 5),
-        pg.K_w: (0, -5),
-        pg.K_s: (0, 5),
-        pg.K_a: (-5, 0),
-        pg.K_d: (5, 0)
-    }
-
-    for key, (dx, dy) in movement.items():
-        if keys[key]:
-            render.update(dx, dy)
 
 
 def main():
@@ -100,7 +71,6 @@ def main():
 
     pg.init()
     pg.mixer.init()
-    flags = DOUBLEBUF
     screen = pg.display.set_mode((screen_width, screen_height), flags)
     global background, spaceship_sprite, shell_sprite
     global enemy_sprite_path, alien_sprite_path, program_icon
