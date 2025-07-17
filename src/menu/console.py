@@ -141,14 +141,13 @@ class Console(tk.Toplevel):
         self.sound_muted = mute
         pg.mixer.music.set_volume(0 if mute else 1)
 
-        # Оновлюємо config-файл
         if not config.has_section("sound"):
             config.add_section("sound")
         config.set("sound", "muted", str(mute))
         with open("config/config.cfg", "w") as configfile:
             config.write(configfile)
 
-        # Оновлюємо глобальну змінну
+
         default_sound_muted = mute
 
         return f"Sound {'muted' if mute else 'unmuted'}"
