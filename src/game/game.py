@@ -52,8 +52,8 @@ class Game:
         self.enemy_sprite_path = os.path.join("assets", "spaceships", "spaceship2d_2.png")
         self.alien_sprite_path = os.path.join("assets", "invaders", "ufo.png")
 
-        self.icon = pg.image.load(os.path.join("assets", "icon", "icon.png")).convert_alpha()
-        pg.display.set_icon(self.icon)
+        #self.icon = pg.image.load(os.path.join("assets", "icon", "icon.png")).convert_alpha()
+        #pg.display.set_icon(self.icon)
         pg.display.set_caption("Spaceship Battle!")
 
         self.spawn_enemies = 50
@@ -102,7 +102,20 @@ class Game:
         while self.running:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
-                    self.running = False
+                    pg.display.flip()
+                    running_program = False
+                elif event.type == pg.KEYDOWN:
+                    if event.key == pg.K_1:
+                        main_menu = MainMenu(
+                            width=self.screen.get_width(),
+                            height=self.screen.get_height(),
+                            title="Spaceship Battle",
+                            screen=self.screen,
+                            start_game_callback=lambda: self.run_game_loop(),
+                            # Making crash with multithreading - given argument without len
+                            enemies=self.spawn_enemies
+                        )
+                        main_menu.draw_menu()
 
             keys = pg.key.get_pressed()
             handle_spaceship_movement(keys, spaceship)
