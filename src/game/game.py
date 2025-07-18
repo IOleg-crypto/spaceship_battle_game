@@ -53,11 +53,11 @@ class Game:
         self.enemy_sprite_path = os.path.join("assets", "spaceships", "spaceship2d_2.png")
         self.alien_sprite_path = os.path.join("assets", "invaders", "ufo.png")
 
-        #self.icon = pg.image.load(os.path.join("assets", "icon", "icon.png")).convert_alpha()
-        #pg.display.set_icon(self.icon)
+        self.icon = pg.image.load(os.path.join("assets", "icon", "icon.png")).convert_alpha()
+        pg.display.set_icon(self.icon)
         pg.display.set_caption("Spaceship Battle!")
 
-        self.spawn_enemies = 50
+        self.spawn_enemies = 1 # By default
 
     def load_spaceship(self):
         default_path = os.path.join("assets", "spaceships", "spaceship2d.png")
@@ -77,10 +77,11 @@ class Game:
         )
         menu.draw_menu()
 
-    def run_game_loop(self):
+    def run_game_loop(self , enemies):
         self.running = True
         self.score = 0
         self.shot_count = 0
+        self.spawn_enemies = enemies
 
         spaceship = RenderSpaceShip(
             [self.screen_width // 2, self.screen_height // 2],
@@ -93,7 +94,7 @@ class Game:
         shells = RenderSpaceShipShells(self.shell_sprite)
         self.enemy_shells = pg.sprite.Group()
 
-        enemies = create_enemies(self.screen, self.enemy_sprite_path, self.alien_sprite_path, self.spawn_enemies)
+        enemies = create_enemies(self.screen, self.enemy_sprite_path, self.alien_sprite_path, enemies)
         for enemy in enemies:
             enemy_sprites.add(enemy)
             all_sprites.add(enemy)
@@ -112,7 +113,7 @@ class Game:
                             height=self.screen.get_height(),
                             title="Spaceship Battle",
                             screen=self.screen,
-                            start_game_callback=lambda: self.run_game_loop(),
+                            start_game_callback=self.set_enemies_and_run,
                             # Making crash with multithreading - given argument without len
                             enemies=self.spawn_enemies
                         )
@@ -150,7 +151,7 @@ class Game:
             self.enemy_shells.draw(self.screen)
             explosion_group.draw(self.screen)
 
-            self.check_end_game(enemy_sprites, font, spaceship, keys)
+            self.check_end_game(enemy_sprites, font, spaceship, keys , explosion_group , all_sprites)
 
             if keys[pg.K_2]:
                 fps_counter(screen=self.screen, clock=self.clock)
@@ -177,7 +178,7 @@ class Game:
                 explosion_group.add(explosion)
                 all_sprites.add(explosion)
 
-    def check_end_game(self, enemy_sprites, font, spaceship, keys):
+    def check_end_game(self, enemy_sprites, font, spaceship, keys , explosion_group , all_sprites):
         if len(enemy_sprites) == 0:
             if not self.sound_muted:
                 pg.mixer.Sound("sound/victory/victory.mp3").play()
@@ -203,6 +204,8 @@ class Game:
                         "Game Over! Press 1 to exit", True, RED
                     )
                     explosion = Explosion(spaceship.rect.centerx, spaceship.rect.centery)
+                    explosion_group.add(explosion)
+                    all_sprites.add(explosion)
 
                     rect = game_over_text.get_rect(center=self.screen.get_rect().center)
                     self.screen.blit(game_over_text, rect)
@@ -214,3 +217,7 @@ class Game:
                     break
 
                 bullet.kill()
+
+    def set_enemies_and_run(self, enemies):
+        self.spawn_enemies = enemies
+        self.run_game_loop(enemies)

@@ -10,6 +10,7 @@ import pygame_menu as pm
 from . import console as console_module  # to read/write console_module.default_sound_muted
 from .background import MovingBackground
 from .console import Console
+from functools import partial
 
 
 
@@ -77,6 +78,7 @@ def open_filedialog():
     root.destroy()
     print(selected_path)
     return selected_path
+
 
 
 class MainMenu:
@@ -285,10 +287,18 @@ class MainMenu:
         settings_menu.add.button("Choose entities", self.choose_spaceship)
         settings_menu.add.button('Back', pm.events.BACK)
 
+        section_menu = pm.Menu('Settings', self.width, self.height, theme=self.custom_theme)
+
+        section_menu.add.button("Level 1", partial(self.start_game, enemies=15))
+        section_menu.add.button("Level 2" ,partial(self.start_game, enemies=20))
+        section_menu.add.button("Level 3" ,partial(self.start_game, enemies=30))
+        section_menu.add.button("Level 4",partial(self.start_game, enemies=80) )
+
         # Main menu buttons
-        main_menu.add.button('Play', self.start_game)
+        main_menu.add.button('Play', section_menu)
         main_menu.add.button('Settings', settings_menu)
         main_menu.add.button('Exit', pm.events.EXIT, font_color=WHITE)
+
 
         # Play background music if not muted
         if not self.sound_muted or console_module.default_sound_muted is False:
@@ -350,18 +360,19 @@ class MainMenu:
             main_menu.draw(self.screen)
             pg.display.flip()
 
-    def start_game(self):
+    def start_game(self , enemies : int):
         """
         Fill the screen black, increment the play counter, call the start_game_callback,
         and pause/unpause menu music depending on mute state.
         """
         self.screen.fill(BLACK)
+        self.enemies = enemies
         pg.display.update()
         self.check_play_game += 1
         print(f"Start new game : {self.check_play_game}")
-        self.start_game_callback()
+        self.start_game_callback(enemies)
 
-        if pg.mixer.get_init():  # Перевіряємо чи mixer ініціалізований
+        if pg.mixer.get_init():
             if self.sound_muted:
                 pg.mixer.music.pause()
             else:
@@ -437,3 +448,5 @@ class MainMenu:
             global spaceship_path_new
             spaceship_path_new = selected
             print(f"Spaceship image set to: {self.spaceship_path}")
+
+
