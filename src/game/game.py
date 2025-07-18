@@ -4,13 +4,13 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 
-from config.config import load_config
-from utils.ResolutionException import ResolutionException
+from config import load_config
+from utils import ResolutionException
 from menu import MainMenu
-from movement.movement import handle_spaceship_movement
+from movement import handle_spaceship_movement
 from entities import Enemy, RenderSpaceShip
 from blast import Explosion, RenderSpaceShipShells
-from utils.Helper import display_information, fps_counter, WHITE
+from utils import display_information, fps_counter, WHITE , RED
 
 
 def create_enemies(screen, enemy_image_path, alien_image_path, num_enemies):
@@ -27,6 +27,7 @@ class Game:
         self.enemy_shells = None
         self.config = load_config()
         self.sound_muted = self.config.getboolean("sound", "muted")
+        self.game_over = True
 
 
         try:
@@ -118,7 +119,8 @@ class Game:
                         main_menu.draw_menu()
 
             keys = pg.key.get_pressed()
-            handle_spaceship_movement(keys, spaceship)
+            if self.game_over:
+                handle_spaceship_movement(keys, spaceship)
 
             if keys[pg.K_SPACE]:
                 shells.shoot_shell(spaceship.rect.center)
@@ -148,7 +150,7 @@ class Game:
             self.enemy_shells.draw(self.screen)
             explosion_group.draw(self.screen)
 
-            self.check_victory(enemy_sprites, font, spaceship)
+            self.check_end_game(enemy_sprites, font, spaceship, keys)
 
             if keys[pg.K_2]:
                 fps_counter(screen=self.screen, clock=self.clock)
@@ -175,7 +177,7 @@ class Game:
                 explosion_group.add(explosion)
                 all_sprites.add(explosion)
 
-    def check_victory(self, enemy_sprites, font, spaceship):
+    def check_end_game(self, enemy_sprites, font, spaceship, keys):
         if len(enemy_sprites) == 0:
             if not self.sound_muted:
                 pg.mixer.Sound("sound/victory/victory.mp3").play()
@@ -189,6 +191,26 @@ class Game:
                 explosion = Explosion(bullet.rect.centerx, bullet.rect.centery)
                 self.enemy_shells.remove(bullet)
 
-            keys = pg.key.get_pressed()
             if keys[pg.K_1]:
                 self.running = False
+            return
+
+
+        for bullet in self.enemy_shells:
+            if pg.sprite.collide_rect(bullet, spaceship):
+                if spaceship.take_damage(3) <= 0:
+                    game_over_text = pg.font.Font("font/Pacifico.ttf", 36).render(
+                        "Game Over! Press 1 to exit", True, RED
+                    )
+                    explosion = Explosion(spaceship.rect.centerx, spaceship.rect.centery)
+
+                    rect = game_over_text.get_rect(center=self.screen.get_rect().center)
+                    self.screen.blit(game_over_text, rect)
+                    self.game_over = False
+                    pg.mixer.music.stop()
+
+                    if keys[pg.K_1]:
+                        self.running = False
+                    break
+
+                bullet.kill()
